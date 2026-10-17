@@ -24,7 +24,7 @@ export function Auth() {
     <main className="auth-layout">
       <div className="auth-story">
         <div className="brand">
-          <Sprout /> 함께농장
+          <Sprout /> 함께그린
         </div>
         <span className="eyebrow">함께 가꾸고, 함께 기록해요</span>
         <h1>

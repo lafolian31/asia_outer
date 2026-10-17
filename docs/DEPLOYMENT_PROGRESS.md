@@ -12,14 +12,16 @@
 - 공개 회원가입 OFF, 익명 로그인 OFF, 이메일 확인 ON 상태를 화면으로 확인하고 저장 완료 보고.
 - Publishable key 위치 확인. 키나 비밀번호는 소스에 넣지 않음.
 - Cloudflare 계정 생성, Pages Git 연결 및 GitHub 본인 확인 진행.
-- Cloudflare의 저장소 선택 화면에 asia_outer가 보이는 상태.
+- 소스를 GitHub main 브랜치에 업로드하고 Cloudflare Pages에서 해당 커밋의 Production 배포 성공(녹색 체크)을 확인.
+- 실제 접속 주소: https://asia-outer.pages.dev/
+- 사용자 요청에 따라 앱 표시 이름을 함께그린으로 변경. 농장 DB의 이름은 관리 화면에서 별도로 설정 가능.
+- 실서버 로그인·다중 계정 공동 사용 검증은 아직 완료되지 않음.
 
 ## 다음 단계
 
-1. 이 소스를 GitHub의 main 브랜치에서 사용할 수 있게 준비.
-2. Cloudflare Pages에서 asia_outer 선택 후 빌드 설정 적용: 명령 npm run build, 출력 dist, Node 24.
-3. 사용자가 Pages 빌드 환경변수에 VITE_SUPABASE_URL과 공개용 VITE_SUPABASE_ANON_KEY를 직접 입력. secret/service_role 키는 사용하지 않음.
-4. 무료 Pages 배포 후 실제 HTTPS 주소 확인, Supabase Site URL 설정.
-5. 실제 사이트에서 관리자 로그인과 설정·기록 저장을 확인. 별도 시험 계정으로 권한·공유·파일을 검증하고 운영 자료와 분리.
+1. 표시 이름 변경 커밋을 GitHub main에 반영하고 Cloudflare 자동 배포 상태 확인.
+2. 실제 사이트에서 Supabase Users에 직접 만든 관리자 계정으로 로그인.
+3. Supabase Site URL을 실제 HTTPS 주소로 설정.
+4. 관리자 화면에서 농장 이름을 함께그린으로 설정하고 기록 저장 확인. 별도 시험 계정으로 권한·공유·파일을 검증하고 운영 자료와 분리.
 
 유료 플랜·도메인 구매·유료 Workers/R2·메일 서비스는 활성화하지 않습니다. 사용자에게는 한 번에 한 단계씩 안내합니다. 로컬 파일 경로와 도구의 이미지 출력은 이 사용자에게 보이지 않았으므로 검수용 접속 주소로 안내합니다.

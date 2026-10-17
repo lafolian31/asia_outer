@@ -157,7 +157,7 @@ export default function App() {
     return (
       <main className="join">
         <Sprout size={48} />
-        <h1>함께농장 연결 준비</h1>
+        <h1>함께그린 연결 준비</h1>
         <p>
           앱 구현은 준비되었습니다. 공동 사용을 시작하려면 무료 Supabase
           프로젝트 연결과 호스팅 배포가 필요합니다.
@@ -293,7 +293,7 @@ export default function App() {
           <div className="brand-icon">
             <Sprout size={25} />
           </div>
-          함께농장
+          함께그린
         </a>
         <div className="farm-selector">
           <Leaf size={17} />
