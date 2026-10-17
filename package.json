@@ -1,0 +1,39 @@
+{
+  "name": "farm-together",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "node --test tests/unit.test.mjs",
+    "test:integration": "node --env-file=.env.test --test tests/integration.mjs",
+    "test:e2e": "playwright test",
+    "db:start": "node scripts/local-stack.mjs start",
+    "db:reset": "node scripts/local-stack.mjs reset",
+    "db:stop": "node scripts/local-stack.mjs stop",
+    "backup": "node scripts/backup.mjs",
+    "restore": "node scripts/restore.mjs",
+    "test:backup": "node tests/backup-restore.mjs",
+    "format:check": "prettier --check src scripts/*.mjs tests playwright.config.ts vite.config.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.58.0",
+    "fflate": "^0.8.2",
+    "lucide-react": "^0.468.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "prettier": "3.6.2",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.9"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

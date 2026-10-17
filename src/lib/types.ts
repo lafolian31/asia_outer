@@ -1,0 +1,59 @@
+export type Role = "admin" | "editor" | "viewer";
+export type Kind = "log" | "plan" | "resource";
+export type Entry = {
+  id: string;
+  kind: Kind;
+  title: string;
+  body: string;
+  work_date: string | null;
+  target_year: number | null;
+  start_date: string | null;
+  end_date: string | null;
+  status: string;
+  actual_date: string | null;
+  result: string;
+  zone: string;
+  crop: string;
+  assignee: string | null;
+  plan_id: string | null;
+  category: string;
+  url: string;
+  author_id: string;
+  created_at: string;
+  updated_at: string;
+  updated_by: string;
+  completed_at: string | null;
+  completed_by: string | null;
+  deleted_at: string | null;
+  deleted_by: string | null;
+  version: number;
+};
+export type Member = {
+  user_id: string;
+  display_name: string;
+  role: Role;
+  active: boolean;
+};
+export type Asset = {
+  id: string;
+  entry_id: string;
+  path: string;
+  name: string;
+  mime: string;
+  size: number;
+  ready: boolean;
+  author_id: string;
+  deleted_at: string | null;
+};
+export type Settings = {
+  name: string;
+  zones: string[];
+  crops: string[];
+  version: number;
+};
+export type Snapshot = {
+  entries: Entry[];
+  members: Member[];
+  assets: Asset[];
+  settings: Settings;
+};

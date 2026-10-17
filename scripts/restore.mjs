@@ -1,0 +1,115 @@
+// Trusted operator only. Restore into a NEW/empty project with the migration applied.
+// Existing auth accounts must be recreated first; user-map.json maps old UUID -> new UUID.
+import { createClient } from "@supabase/supabase-js";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import { createHash } from "node:crypto";
+const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = process.env;
+if (
+  !SUPABASE_URL ||
+  !SUPABASE_SERVICE_ROLE_KEY ||
+  process.argv[4] !== "--empty-target-confirmed"
+)
+  throw Error(
+    "Usage: secure env SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY; node scripts/restore.mjs BACKUP_DIR USER_MAP_JSON --empty-target-confirmed",
+  );
+const base = path.resolve(process.argv[2]),
+  manifest = JSON.parse(
+    await readFile(path.join(base, "manifest.json"), "utf8"),
+  ),
+  mapping = JSON.parse(await readFile(process.argv[3], "utf8"));
+if (manifest.format !== 1) throw Error("Unsupported backup format");
+const db = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+  auth: { persistSession: false, autoRefreshToken: false },
+});
+const check = (r) => {
+  if (r.error) throw r.error;
+  return r.data;
+};
+for (const table of ["members", "entries", "assets"]) {
+  const r = await db.from(table).select("*", { count: "exact", head: true });
+  check(r);
+  if (r.count) throw Error("Restore requires an empty target: " + table);
+}
+const remap = (id) => {
+  if (!id) return null;
+  const value = mapping[id];
+  if (!value) throw Error("Missing account mapping: " + id);
+  return value;
+};
+for (const m of manifest.members) {
+  remap(m.user_id);
+  const r = await db.auth.admin.getUserById(mapping[m.user_id]);
+  check(r);
+}
+if (!manifest.members.some((m) => m.role === "admin" && m.active))
+  throw Error("Backup has no active administrator");
+// Validate all files and actor mappings before changing target data.
+for (const e of manifest.entries)
+  for (const key of [
+    "author_id",
+    "updated_by",
+    "completed_by",
+    "deleted_by",
+    "assignee",
+  ])
+    remap(e[key]);
+for (const a of manifest.assets.filter((a) => a.ready)) {
+  remap(a.author_id);
+  if (!/^[0-9a-f-]{36}\/[0-9a-f-]{36}$/.test(a.path))
+    throw Error("Unsafe file path");
+  const bytes = await readFile(path.join(base, "files", a.path));
+  if (bytes.length !== a.size) throw Error("Backup size mismatch: " + a.name);
+  if (
+    manifest.sha256?.[a.path] &&
+    createHash("sha256").update(bytes).digest("hex") !== manifest.sha256[a.path]
+  )
+    throw Error("Backup checksum mismatch: " + a.name);
+}
+check(
+  await db
+    .from("members")
+    .insert(manifest.members.map((m) => ({ ...m, user_id: remap(m.user_id) }))),
+);
+check(
+  await db
+    .from("farm_settings")
+    .update({
+      name: manifest.settings.name,
+      zones: manifest.settings.zones,
+      crops: manifest.settings.crops,
+      version: manifest.settings.version,
+    })
+    .eq("id", true),
+);
+const entries = manifest.entries.map((e) => ({
+  ...e,
+  author_id: remap(e.author_id),
+  updated_by: remap(e.updated_by),
+  completed_by: remap(e.completed_by),
+  deleted_by: remap(e.deleted_by),
+  assignee: remap(e.assignee),
+}));
+for (const group of [
+  entries.filter((e) => e.kind === "plan"),
+  entries.filter((e) => e.kind !== "plan"),
+])
+  for (let i = 0; i < group.length; i += 100)
+    check(await db.from("entries").insert(group.slice(i, i + 100)));
+for (const a of manifest.assets.filter((a) => a.ready)) {
+  check(
+    await db.from("assets").insert({ ...a, author_id: remap(a.author_id) }),
+  );
+  check(
+    await db.storage
+      .from("farm-files")
+      .upload(a.path, await readFile(path.join(base, "files", a.path)), {
+        contentType: a.mime,
+        upsert: false,
+      }),
+  );
+}
+// Historical audit is retained in the backup; restore-generated audit is kept in the new project.
+console.log(
+  `Restored ${entries.length} records and ${manifest.assets.filter((a) => a.ready).length} files. Verify member permissions and downloads before opening access. Original audit is in manifest.json.`,
+);
