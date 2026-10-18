@@ -49,6 +49,7 @@ export type Settings = {
   name: string;
   zones: string[];
   crops: string[];
+  resource_categories?: string[];
   version: number;
 };
 export type Snapshot = {

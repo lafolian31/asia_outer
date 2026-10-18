@@ -78,6 +78,7 @@ check(
       name: manifest.settings.name,
       zones: manifest.settings.zones,
       crops: manifest.settings.crops,
+      resource_categories: manifest.settings.resource_categories || ["일반"],
       version: manifest.settings.version,
     })
     .eq("id", true),

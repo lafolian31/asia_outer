@@ -245,3 +245,137 @@ test("자료 업로드·검색·다운로드", async ({ page }) => {
   const file = await event;
   expect(readFileSync((await file.path())!, "utf8")).toBe("농장 안내입니다.");
 });
+
+test("기존 사진 일지를 나중에 만든 계획에 수정 연결하고 재접속 후 유지", async ({
+  page,
+}) => {
+  await login(page, "a");
+  const suffix = String(Date.now());
+  const logTitle = "[브라우저 시험] 사후 연결 일지 " + suffix;
+  const planTitle = "[브라우저 시험] 사후 연결 계획 " + suffix;
+  const picture = await page.screenshot({
+    clip: { x: 30, y: 30, width: 120, height: 90 },
+  });
+  await page.getByRole("button", { name: "일지 쓰기", exact: true }).click();
+  let dialog = page.getByRole("dialog");
+  await dialog.getByLabel("제목").fill(logTitle);
+  await dialog
+    .getByLabel("한 일과 실행 결과")
+    .fill("나중에 만든 계획에 연결하는 시험 기록입니다.");
+  await dialog.locator('input[type="file"]').setInputFiles({
+    name: "사후연결.png",
+    mimeType: "image/png",
+    buffer: picture,
+  });
+  await dialog.getByRole("button", { name: "저장하기" }).click();
+  await expect(dialog).toBeHidden();
+  await nav(page, "연간 계획·실적");
+  await page.getByRole("button", { name: "계획 세우기" }).click();
+  dialog = page.getByRole("dialog");
+  await dialog.getByLabel("제목").fill(planTitle);
+  await dialog
+    .getByLabel("계획 내용")
+    .fill("이미 저장된 사진 일지를 연결하는 시험 계획입니다.");
+  const year = await dialog.getByLabel("목표 연도").inputValue();
+  await dialog.getByRole("button", { name: "저장하기" }).click();
+  await expect(dialog).toBeHidden();
+  await nav(page, "작업일지");
+  await page
+    .getByRole("button")
+    .filter({ has: page.getByRole("heading", { name: logTitle, exact: true }) })
+    .click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "수정하기" })
+    .click();
+  dialog = page.getByRole("dialog");
+  await dialog
+    .getByLabel("연결할 연간 계획")
+    .selectOption({ label: `${year} · ${planTitle}` });
+  await dialog.getByRole("button", { name: "저장하기" }).click();
+  await expect(dialog).toBeHidden();
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "농장의 오늘을 살펴보세요" }),
+  ).toBeVisible();
+  await nav(page, "작업일지");
+  await page
+    .getByRole("button")
+    .filter({ has: page.getByRole("heading", { name: logTitle, exact: true }) })
+    .click();
+  dialog = page.getByRole("dialog");
+  await dialog
+    .getByRole("button", { name: `${year} · ${planTitle}`, exact: true })
+    .click();
+  dialog = page.getByRole("dialog");
+  await expect(
+    dialog.getByRole("heading", { name: planTitle, exact: true }),
+  ).toBeVisible();
+  await expect(dialog.getByText("미실행", { exact: true })).toBeVisible();
+  await expect(
+    dialog.getByRole("button", { name: logTitle, exact: false }),
+  ).toBeVisible();
+  await expect(dialog.locator("img")).toHaveAttribute("src", /^blob:/);
+});
+
+test("관리자가 분류를 추가하고 다른 계정이 선택·검색, 목록 제외 후에도 기존 자료 유지", async ({
+  browser,
+}) => {
+  const adminContext = await browser.newContext();
+  const memberContext = await browser.newContext();
+  const admin = await adminContext.newPage();
+  const member = await memberContext.newPage();
+  await login(admin, "admin");
+  await nav(admin, "농장 관리");
+  const categoryName = "교육 " + Date.now();
+  await admin
+    .getByLabel("사용할 분류")
+    .fill("일반\n" + categoryName + "\n회의록");
+  await admin.getByRole("button", { name: "분류 저장", exact: true }).click();
+  await expect(
+    admin.getByText("자료실 분류를 저장했습니다.", { exact: true }),
+  ).toBeVisible();
+  await login(member, "a");
+  await nav(member, "자료실");
+  await member
+    .getByRole("button", { name: "자료 올리기", exact: true })
+    .click();
+  const editor = member.getByRole("dialog");
+  const title = "[브라우저 시험] 분류 자료 " + Date.now();
+  await editor.getByLabel("제목").fill(title);
+  await editor.getByLabel("분류", { exact: false }).selectOption(categoryName);
+  await editor.getByLabel("웹링크").fill("https://example.com/");
+  await editor.getByRole("button", { name: "저장하기" }).click();
+  await expect(editor).toBeHidden();
+  await member.reload();
+  await nav(member, "자료실");
+  await member
+    .getByLabel("자료 분류", { exact: true })
+    .selectOption(categoryName);
+  await expect(
+    member.getByRole("heading", { name: title, exact: true }),
+  ).toBeVisible();
+  await admin.getByLabel("사용할 분류").fill("일반\n회의록");
+  await admin.getByRole("button", { name: "분류 저장", exact: true }).click();
+  await expect(
+    admin.getByRole("button", { name: "분류 저장", exact: true }),
+  ).toBeEnabled();
+  await member.reload();
+  await nav(member, "자료실");
+  await member
+    .getByLabel("자료 분류", { exact: true })
+    .selectOption(categoryName);
+  await member
+    .getByRole("button")
+    .filter({ has: member.getByRole("heading", { name: title, exact: true }) })
+    .click();
+  await member
+    .getByRole("dialog")
+    .getByRole("button", { name: "수정하기" })
+    .click();
+  await expect(
+    member.getByRole("dialog").getByLabel("분류", { exact: false }),
+  ).toHaveValue(categoryName);
+  await adminContext.close();
+  await memberContext.close();
+});

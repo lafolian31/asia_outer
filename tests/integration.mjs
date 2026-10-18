@@ -536,6 +536,44 @@ await test("실제 파일 크기를 작게 속여 용량 한도를 우회할 수
   );
   await rpc(a, "cancel_asset", { p_id: f.id });
 });
+await test("자료실 분류: 관리자 저장·정규화·공유, 참여자·열람자·비회원 거부", async () => {
+  const before = (await admin.c.from("farm_settings").select("*").single())
+    .data;
+  const args = {
+    p_version: before.version,
+    p_categories: ["일반", " 교육 ", "회의록", "교육"],
+  };
+  for (const u of [a, viewer, outside])
+    await denied(u, "save_resource_categories", args);
+  await rpc(admin, "save_resource_categories", args);
+  const saved = (await b.c.from("farm_settings").select("*").single()).data;
+  assert.deepEqual(saved.resource_categories, ["일반", "교육", "회의록"]);
+  assert.equal(saved.version, before.version + 1);
+  await denied(admin, "save_resource_categories", args);
+  for (const values of [
+    [],
+    [" "],
+    [null],
+    ["x".repeat(51)],
+    Array(101).fill("분류"),
+  ]) {
+    await denied(admin, "save_resource_categories", {
+      p_version: saved.version,
+      p_categories: values,
+    });
+  }
+  const oldEntry = (
+    await admin.c.from("entries").select("*").eq("id", resource.id).single()
+  ).data;
+  await rpc(admin, "save_resource_categories", {
+    p_version: saved.version,
+    p_categories: ["일반", "교육"],
+  });
+  const preserved = (
+    await admin.c.from("entries").select("*").eq("id", resource.id).single()
+  ).data;
+  assert.deepEqual(preserved, oldEntry);
+});
 writeFileSync(
   ".env.test-fixtures.json",
   JSON.stringify(

@@ -66,6 +66,15 @@ execFileSync(
   ["scripts/restore.mjs", backupDir, mapFile, "--empty-target-confirmed"],
   { env: { ...process.env, ...target }, stdio: "pipe" },
 );
+const restoredSettings = await db
+  .from("farm_settings")
+  .select("resource_categories")
+  .single();
+assert.ifError(restoredSettings.error);
+assert.deepEqual(
+  restoredSettings.data.resource_categories,
+  manifest.settings.resource_categories,
+);
 const records = await db.from("entries").select("*");
 assert.ifError(records.error);
 assert.equal(records.data.length, manifest.entries.length);

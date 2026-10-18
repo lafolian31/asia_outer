@@ -677,16 +677,18 @@ export default function App() {
                     <label>
                       분류
                       <select
+                        aria-label="자료 분류"
                         value={category}
                         onChange={(e) => setCategory(e.target.value)}
                       >
                         <option value="">전체 분류</option>
                         {Array.from(
-                          new Set(
-                            active
+                          new Set([
+                            ...(s.settings.resource_categories || []),
+                            ...active
                               .filter((e) => e.kind === "resource")
                               .map((e) => e.category),
-                          ),
+                          ]),
                         ).map((c) => (
                           <option key={c}>{c}</option>
                         ))}

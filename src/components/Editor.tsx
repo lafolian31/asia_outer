@@ -35,7 +35,7 @@ export function Editor({
           crop: "",
           assignee: "",
           plan_id: "",
-          category: "일반",
+          category: snapshot.settings.resource_categories?.[0] || "일반",
           url: "",
         },
   );
@@ -317,7 +317,31 @@ export function Editor({
           )}
           {kind === "resource" && (
             <div className="form-grid">
-              {input("category", "분류", "text", true)}
+              {snapshot.settings.resource_categories ? (
+                <label>
+                  분류 *
+                  <select
+                    required
+                    value={form.category}
+                    onChange={(e) => change("category", e.target.value)}
+                  >
+                    {Array.from(
+                      new Set([
+                        ...snapshot.settings.resource_categories,
+                        ...(entry?.category ? [entry.category] : []),
+                      ]),
+                    ).map((c) => (
+                      <option key={c}>{c}</option>
+                    ))}
+                  </select>
+                  <small>
+                    새 분류는 관리자가 농장 관리 → 자료실 분류 관리에서 추가할
+                    수 있습니다.
+                  </small>
+                </label>
+              ) : (
+                input("category", "분류", "text", true)
+              )}
               {input("url", "웹링크", "url")}
             </div>
           )}

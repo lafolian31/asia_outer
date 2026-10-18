@@ -23,6 +23,9 @@ export function Admin({
   const [name, setName] = useState(s.settings.name),
     [zones, setZones] = useState(s.settings.zones.join(", ")),
     [crops, setCrops] = useState(s.settings.crops.join(", "));
+  const [categories, setCategories] = useState(
+    (s.settings.resource_categories || ["일반"]).join("\n"),
+  );
   const [email, setEmail] = useState(""),
     [role, setRole] = useState<Role>("editor"),
     [code, setCode] = useState(""),
@@ -104,6 +107,50 @@ export function Admin({
             설정 저장
           </button>
         </form>
+      </section>
+      <section className="panel">
+        <h2>자료실 분류 관리</h2>
+        {s.settings.resource_categories === undefined ? (
+          <p className="muted">
+            분류 목록 관리를 사용하려면 데이터베이스 업데이트가 필요합니다. 기존
+            자료실은 계속 사용할 수 있습니다.
+          </p>
+        ) : (
+          <form
+            onSubmit={(e: FormEvent) => {
+              e.preventDefault();
+              act(async () => {
+                await rpc("save_resource_categories", {
+                  p_version: settingsVersion,
+                  p_categories: categories
+                    .split("\n")
+                    .map((x) => x.trim())
+                    .filter(Boolean),
+                });
+                setSettingsVersion(settingsVersion + 1);
+              }, "자료실 분류를 저장했습니다.");
+            }}
+          >
+            <label>
+              사용할 분류 <small>한 줄에 하나씩, 최대 100개</small>
+              <textarea
+                required
+                rows={6}
+                value={categories}
+                onChange={(e) => setCategories(e.target.value)}
+                placeholder={"일반\n교육\n회의록"}
+              />
+            </label>
+            <p className="muted">
+              필요한 분류를 추가하거나 목록을 수정하세요. 목록에서 빼도 기존
+              자료와 그 분류는 유지됩니다. 기존 자료의 분류 변경은 해당 자료의
+              수정 화면에서 할 수 있습니다.
+            </p>
+            <button className="primary" disabled={busy}>
+              분류 저장
+            </button>
+          </form>
+        )}
       </section>
       <section className="panel">
         <h2>
