@@ -90,6 +90,12 @@ for (const [table, items] of [
     .sort((a, b) => a.id.localeCompare(b.id));
   assert.deepEqual(copy.data, expected);
 }
+const catalogCopy = await db
+  .from("farm_settings")
+  .select("work_catalog")
+  .single();
+assert.ifError(catalogCopy.error);
+assert.deepEqual(catalogCopy.data.work_catalog, manifest.settings.work_catalog);
 const records = await db.from("entries").select("*");
 assert.ifError(records.error);
 assert.equal(records.data.length, manifest.entries.length);
@@ -106,9 +112,19 @@ for (const e of manifest.entries) {
     "result",
     "version",
     "deleted_at",
+    "record_type",
+    "work_group",
+    "work_task",
+    "activity_category",
+    "quantity",
+    "quantity_unit",
   ])
     assert.equal(copy[key], e[key], key);
   assert.equal(copy.author_id, map[e.author_id]);
+  assert.deepEqual(
+    copy.participant_ids,
+    (e.participant_ids || []).map((id) => map[id]),
+  );
 }
 const memberResult = await db.from("members").select("*");
 assert.ifError(memberResult.error);

@@ -3,6 +3,7 @@ import { Download, ExternalLink, X, Trash2, Pencil } from "lucide-react";
 import type { Entry, Member, Snapshot, Asset } from "../lib/types";
 import { fileBlob, rpc } from "../lib/api";
 import { canEdit, download, readableError, safeUrl } from "../lib/utils.js";
+import { isActivity } from "../lib/work";
 import { Discussion } from "./Discussion";
 export function Attachment({ asset }: { asset: Asset }) {
   const [src, setSrc] = useState("");
@@ -78,6 +79,8 @@ export function Detail({
   onEdit,
   onRefresh,
   onOpen,
+  onCopy,
+  onRecord,
 }: {
   entry: Entry;
   snapshot: Snapshot;
@@ -86,6 +89,8 @@ export function Detail({
   onEdit: () => void;
   onRefresh: () => Promise<void>;
   onOpen: (e: Entry) => void;
+  onCopy?: () => void;
+  onRecord?: (activity?: boolean) => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [error, setError] = useState("");
@@ -95,7 +100,14 @@ export function Detail({
   }, []);
   const name = (id: string) =>
     s.members.find((m) => m.user_id === id)?.display_name || "이전 참여자";
-  const logs = s.entries.filter((l) => l.plan_id === e.id && !l.deleted_at);
+  const logs = s.entries
+    .filter((l) => l.plan_id === e.id && !l.deleted_at)
+    .sort(
+      (a, b) =>
+        (a.work_date || a.created_at).localeCompare(
+          b.work_date || b.created_at,
+        ) || a.created_at.localeCompare(b.created_at),
+    );
   const linked = s.entries.find((p) => p.id === e.plan_id);
   const assets = s.assets.filter((a) => a.entry_id === e.id && a.ready);
   async function trash() {
@@ -116,10 +128,12 @@ export function Detail({
       <div className="dialog-title">
         <span className="eyebrow">
           {e.kind === "log"
-            ? "작업일지"
+            ? isActivity(e)
+              ? "운영·교류"
+              : "농작업일지"
             : e.kind === "plan"
-              ? "연간 계획"
-              : "공유 자료"}
+              ? "농장계획"
+              : "자료"}
         </span>
         <button className="icon-button" aria-label="닫기" onClick={onClose}>
           <X />
@@ -132,6 +146,28 @@ export function Detail({
         {e.zone && " · " + e.zone}
         {e.crop && " · " + e.crop}
       </p>
+      {e.kind === "log" && (
+        <div className="record-tags">
+          {e.work_group && <span>{e.work_group}</span>}
+          {e.work_task && <span>{e.work_task}</span>}
+          {e.activity_category && isActivity(e) && (
+            <span>{e.activity_category}</span>
+          )}
+          {e.quantity != null && (
+            <span>
+              작업량 {e.quantity} {e.quantity_unit}
+            </span>
+          )}
+          {!!e.participant_ids?.length && (
+            <span>참여: {e.participant_ids.map(name).join(", ")}</span>
+          )}
+        </div>
+      )}
+      {onCopy && (
+        <button className="text-button" onClick={onCopy}>
+          이전 작업 복사
+        </button>
+      )}
       <p className="prose">{e.body || "등록된 설명이 없습니다."}</p>
       {e.kind === "log" && (
         <div className="inset">
@@ -175,14 +211,27 @@ export function Detail({
               )}
             </dl>
           </div>
+          {onRecord && (
+            <div className="button-row">
+              <button className="primary" onClick={() => onRecord(false)}>
+                관련 농작업 기록하기
+              </button>
+              {s.settings.work_catalog && (
+                <button onClick={() => onRecord(true)}>
+                  운영·교류 기록하기
+                </button>
+              )}
+            </div>
+          )}
           <h3>
-            연결된 작업일지 <span className="count">{logs.length}</span>
+            연결된 기록 <span className="count">{logs.length}</span>
           </h3>
           {logs.length ? (
             logs.map((l) => (
               <div className="linked-log" key={l.id}>
                 <button className="text-button" onClick={() => onOpen(l)}>
-                  {l.work_date} · {l.title}
+                  {l.work_date} · {isActivity(l) ? "운영·교류" : "농작업"} ·{" "}
+                  {l.title}
                 </button>
                 <p className="prose">{l.body}</p>
                 <div className="attachments">
@@ -196,7 +245,7 @@ export function Detail({
             ))
           ) : (
             <p className="muted">
-              연결된 작업일지가 없습니다. 일지 작성 시 이 계획을 선택해 주세요.
+              연결된 기록이 없습니다. 관련 농작업이나 운영·교류를 기록해 보세요.
             </p>
           )}
         </>

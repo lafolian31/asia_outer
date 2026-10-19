@@ -87,19 +87,15 @@ for (const mobile of [false, true]) {
         page.getByRole("heading", { name: "농장의 오늘을 살펴보세요" }),
       ).toBeVisible();
 
-      for (const [label, scope] of [
-        ["올해 계획", ""],
-        ["완료한 계획", "완료"],
-        ["진행할 계획", "pending"],
-      ]) {
+      for (const [label, scope] of [["올해 계획", ""]]) {
         // Leave old year, search, and status filters behind before opening the summary.
-        await nav(page, "연간 계획·실적");
+        await nav(page, "농장계획");
         await page.getByLabel("목표 연도").fill(String(year + 1));
         await page.getByLabel("검색어").fill("결과가 없어야 하는 이전 검색");
         await page
           .getByLabel("계획 상태", { exact: true })
           .selectOption("취소");
-        await nav(page, "농장 한눈에");
+        await nav(page, "홈");
         const card = page.getByRole("button", {
           name: new RegExp(`^${label} \\d+건 목록 보기$`),
         });
@@ -112,7 +108,7 @@ for (const mobile of [false, true]) {
           await page.keyboard.press("Enter");
         }
         await expect(
-          page.getByRole("heading", { name: "연간 계획·실적", exact: true }),
+          page.getByRole("heading", { name: "농장계획", exact: true }),
         ).toBeVisible();
         await expect(page.getByLabel("목표 연도")).toHaveValue(String(year));
         await expect(page.getByLabel("계획 상태", { exact: true })).toHaveValue(
@@ -132,22 +128,38 @@ for (const mobile of [false, true]) {
           ).toHaveCount(visible ? 1 : 0);
         }
       }
+      await page.getByLabel("계획 상태", { exact: true }).selectOption("완료");
+      await expect(
+        page.getByRole("button", { name: entries[2].title, exact: true }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: entries[0].title, exact: true }),
+      ).toHaveCount(0);
+      await page
+        .getByLabel("계획 상태", { exact: true })
+        .selectOption("pending");
+      await expect(
+        page.getByRole("button", { name: entries[0].title, exact: true }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: entries[2].title, exact: true }),
+      ).toHaveCount(0);
       await page.getByLabel("계획 상태", { exact: true }).selectOption("");
       await expect(
         page.getByRole("button", { name: entries[3].title, exact: true }),
       ).toBeVisible();
-      await nav(page, "작업일지");
+      await nav(page, "농작업일지");
       await page.getByLabel("검색어").fill("결과가 없어야 하는 이전 검색");
-      await nav(page, "농장 한눈에");
+      await nav(page, "홈");
       const logCard = page.getByRole("button", {
-        name: /^쌓인 작업일지 \d+건 목록 보기$/,
+        name: /^쌓인 농작업일지 \d+건 목록 보기$/,
       });
       const logCount = Number(
         (await logCard.getAttribute("aria-label"))!.match(/(\d+)건/)![1],
       );
       await logCard.locator(".stat-value").click();
       await expect(
-        page.getByRole("heading", { name: "작업일지", exact: true }),
+        page.getByRole("heading", { name: "농작업일지", exact: true }),
       ).toBeVisible();
       await expect(page.getByLabel("검색어")).toHaveValue("");
       await expect(page.locator(".records-list .record-card")).toHaveCount(

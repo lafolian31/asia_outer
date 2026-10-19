@@ -1,3 +1,4 @@
+import { WorkCatalogEditor } from "./WorkCatalogEditor";
 import { useState, type FormEvent } from "react";
 import {
   Download,
@@ -108,12 +109,27 @@ export function Admin({
           </button>
         </form>
       </section>
+      {s.settings.work_catalog && (
+        <WorkCatalogEditor
+          catalog={s.settings.work_catalog}
+          busy={busy}
+          onSave={(catalog) =>
+            act(async () => {
+              await rpc("save_work_catalog", {
+                p_version: settingsVersion,
+                p_catalog: catalog,
+              });
+              setSettingsVersion(settingsVersion + 1);
+            }, "농작업 선택 목록을 저장했습니다.")
+          }
+        />
+      )}
       <section className="panel">
-        <h2>자료실 분류 관리</h2>
+        <h2>자료함 분류 관리</h2>
         {s.settings.resource_categories === undefined ? (
           <p className="muted">
             분류 목록 관리를 사용하려면 데이터베이스 업데이트가 필요합니다. 기존
-            자료실은 계속 사용할 수 있습니다.
+            자료함은 계속 사용할 수 있습니다.
           </p>
         ) : (
           <form
@@ -128,7 +144,7 @@ export function Admin({
                     .filter(Boolean),
                 });
                 setSettingsVersion(settingsVersion + 1);
-              }, "자료실 분류를 저장했습니다.");
+              }, "자료함 분류를 저장했습니다.");
             }}
           >
             <label>

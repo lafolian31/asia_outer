@@ -61,7 +61,14 @@ export async function compressPhoto(file: File): Promise<File> {
     throw new Error(
       "사진은 JPG, PNG, WebP를 사용해 주세요. HEIC는 JPG로 변환해 주세요.",
     );
-  const bitmap = await createImageBitmap(file);
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(file);
+  } catch {
+    throw new Error(
+      "사진을 읽을 수 없습니다. 파일이 손상되지 않았는지 확인하고 JPG·PNG·WebP 사진을 다시 선택해 주세요.",
+    );
+  }
   const ratio = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
   const canvas = document.createElement("canvas");
   canvas.width = Math.max(1, Math.round(bitmap.width * ratio));
@@ -156,9 +163,22 @@ export function exportCsv(s: Snapshot) {
       "완료처리자",
       "완료처리시각",
       "삭제시각",
+      "기록구분",
+      "작업대분류",
+      "세부작업",
+      "활동분류",
+      "작업량",
+      "단위",
+      "참여자",
     ],
     ...s.entries.map((e) => [
-      e.kind === "log" ? "작업일지" : e.kind === "plan" ? "연간계획" : "자료",
+      e.kind === "log"
+        ? e.record_type === "activity"
+          ? "운영·교류"
+          : "농작업일지"
+        : e.kind === "plan"
+          ? "농장계획"
+          : "자료",
       e.title,
       e.body,
       e.work_date,
@@ -179,6 +199,13 @@ export function exportCsv(s: Snapshot) {
       e.completed_by ? name(e.completed_by) : "",
       e.completed_at,
       e.deleted_at,
+      e.record_type || "",
+      e.work_group || "",
+      e.work_task || "",
+      e.activity_category || "",
+      e.quantity ?? "",
+      e.quantity_unit || "",
+      (e.participant_ids || []).map(name).join(", "),
     ]),
   ];
   download(

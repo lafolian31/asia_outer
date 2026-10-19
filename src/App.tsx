@@ -14,25 +14,27 @@ import {
   RefreshCw,
   LogOut,
   Leaf,
-  CheckCircle2,
-  Clock3,
   AlertCircle,
   KeyRound,
+  Users,
+  Camera,
 } from "lucide-react";
 import { configured, db, snapshot, exportCsv } from "./lib/api";
 import { planStats, readableError, roleLabels, today } from "./lib/utils.js";
 import type { Entry, Kind, Member, Snapshot } from "./lib/types";
-import { Auth, Join, FarmArt } from "./components/Auth";
+import { Auth, Join } from "./components/Auth";
 import { Editor } from "./components/Editor";
 import { Detail } from "./components/Detail";
 import { Admin } from "./components/Admin";
+import { isActivity, workGroupNames } from "./lib/work";
+import { Thumbnail } from "./components/Thumbnail";
 import { Password } from "./components/Password";
 const navigation = [
-  { id: "home", name: "농장 한눈에", icon: LayoutDashboard },
-  { id: "log", name: "작업일지", icon: BookOpen },
-  { id: "plan", name: "연간 계획·실적", icon: CalendarDays },
-  { id: "resource", name: "자료실", icon: FolderOpen },
-  { id: "admin", name: "농장 관리", icon: Settings },
+  { id: "home", name: "홈", icon: LayoutDashboard },
+  { id: "plan", name: "농장계획", icon: CalendarDays },
+  { id: "log", name: "농작업일지", icon: BookOpen },
+  { id: "activity", name: "운영·교류", icon: Users },
+  { id: "resource", name: "자료함 및 관리", icon: FolderOpen },
 ];
 export default function App() {
   const [passwordOpen, setPasswordOpen] = useState(false);
@@ -43,7 +45,11 @@ export default function App() {
     [error, setError] = useState(""),
     [notice, setNotice] = useState("");
   const [page, setPage] = useState("home"),
-    [editor, setEditor] = useState<{ kind: Kind; entry?: Entry } | null>(null),
+    [editor, setEditor] = useState<{
+      kind: Kind;
+      entry?: Entry;
+      initial?: Partial<Entry> & { photo_first?: boolean; copied?: boolean };
+    } | null>(null),
     [detail, setDetail] = useState<Entry | null>(null),
     [online, setOnline] = useState(navigator.onLine),
     [refreshing, setRefreshing] = useState(false);
@@ -55,7 +61,12 @@ export default function App() {
     [year, setYear] = useState(Number(today().slice(0, 4))),
     [month, setMonth] = useState(""),
     [planStatus, setPlanStatus] = useState(""),
-    [category, setCategory] = useState("");
+    [category, setCategory] = useState(""),
+    [crop, setCrop] = useState(""),
+    [zone, setZone] = useState(""),
+    [workGroup, setWorkGroup] = useState(""),
+    [workTask, setWorkTask] = useState(""),
+    [activityCategory, setActivityCategory] = useState("");
   const me = s?.members.find((m) => m.user_id === session?.user.id && m.active);
   const writable = !!me && me.role !== "viewer";
   const refresh = useCallback(async () => {
@@ -153,6 +164,11 @@ export default function App() {
     setAuthor("");
     setMonth("");
     setPlanStatus("");
+    setCrop("");
+    setZone("");
+    setWorkGroup("");
+    setWorkTask("");
+    setActivityCategory("");
   }
   function openCurrentPlans(status = "") {
     navigate("plan");
@@ -204,12 +220,39 @@ export default function App() {
       : yearPlans,
   );
   const logs = active
-    .filter((e) => e.kind === "log")
+    .filter((e) => e.kind === "log" && !isActivity(e))
     .sort(
       (a, b) =>
         (b.work_date || "").localeCompare(a.work_date || "") ||
         b.created_at.localeCompare(a.created_at),
     );
+  const activityLogs = active.filter(isActivity);
+  const frequent = Object.values(
+    logs
+      .filter((e) => e.author_id === me.user_id && e.work_task)
+      .reduce(
+        (items, e) => {
+          const key = `${e.work_group}:${e.work_task}`;
+          items[key] = {
+            group: e.work_group || "",
+            task: e.work_task!,
+            count: (items[key]?.count || 0) + 1,
+          };
+          return items;
+        },
+        {} as Record<string, { group: string; task: string; count: number }>,
+      ),
+  )
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 4);
+  const quick = frequent.length
+    ? frequent
+    : [
+        { group: "물·양분 관리", task: "관수" },
+        { group: "잡초·병해충", task: "제초" },
+        { group: "수확·수확 후", task: "수확" },
+        { group: "관찰·점검", task: "생육 관찰" },
+      ];
   const overdue = plans.filter(
     (e) => e.end_date! < today() && ["미실행", "진행중"].includes(e.status),
   );
@@ -221,16 +264,34 @@ export default function App() {
   const name = (id: string) =>
     s.members.find((m) => m.user_id === id)?.display_name || "이전 참여자";
   const filtered = active
-    .filter((e) => e.kind === page)
     .filter((e) =>
-      (e.title + " " + e.body + " " + e.result + " " + e.zone + " " + e.crop)
+      page === "activity"
+        ? isActivity(e)
+        : e.kind === page && (page !== "log" || !isActivity(e)),
+    )
+    .filter((e) =>
+      (
+        e.title +
+        " " +
+        e.body +
+        " " +
+        e.result +
+        " " +
+        e.zone +
+        " " +
+        e.crop +
+        " " +
+        (e.work_task || "") +
+        " " +
+        (e.work_group || "")
+      )
         .toLowerCase()
         .includes(query.toLowerCase()),
     )
     .filter((e) => !author || e.author_id === author)
     .filter(
       (e) =>
-        page !== "log" ||
+        !["log", "activity"].includes(page) ||
         ((!from || e.work_date! >= from) &&
           (!to || e.work_date! <= to) &&
           (!plan || (plan === "none" ? !e.plan_id : e.plan_id === plan))),
@@ -244,6 +305,17 @@ export default function App() {
               e.end_date! >= `${year}-${month}-01`))),
     )
     .filter((e) => !category || e.category === category)
+    .filter((e) => !crop || e.crop === crop)
+    .filter((e) => !zone || e.zone === zone)
+    .filter(
+      (e) =>
+        !workGroup ||
+        (workGroup === "__legacy" ? !e.work_group : e.work_group === workGroup),
+    )
+    .filter((e) => !workTask || e.work_task === workTask)
+    .filter(
+      (e) => !activityCategory || e.activity_category === activityCategory,
+    )
     .filter(
       (e) =>
         page !== "plan" ||
@@ -259,6 +331,12 @@ export default function App() {
     );
   const card = (e: Entry) => (
     <button className="record-card" key={e.id} onClick={() => setDetail(e)}>
+      {(() => {
+        const photo = s.assets.find(
+          (a) => a.entry_id === e.id && a.ready && a.mime.startsWith("image/"),
+        );
+        return photo ? <Thumbnail asset={photo} /> : null;
+      })()}
       <div className="record-icon">
         {e.kind === "log" ? (
           <BookOpen size={21} />
@@ -280,6 +358,11 @@ export default function App() {
         <div className="record-tags">
           {e.zone && <span>{e.zone}</span>}
           {e.crop && <span>{e.crop}</span>}
+          {e.work_task && <span>{e.work_task}</span>}
+          {isActivity(e) && <span>{e.activity_category}</span>}
+          {e.kind === "log" && !isActivity(e) && !e.work_group && (
+            <span>분류 미지정</span>
+          )}
           {e.kind === "log" && (
             <span>{e.plan_id ? "계획 연결" : "계획 외 작업"}</span>
           )}
@@ -319,19 +402,21 @@ export default function App() {
         </div>
         <div className="nav-caption">농장 공간</div>
         <nav>
-          {navigation
-            .filter((n) => n.id !== "admin" || me.role === "admin")
-            .map((n) => (
-              <button
-                key={n.id}
-                className={page === n.id ? "active" : ""}
-                onClick={() => navigate(n.id)}
-              >
-                <n.icon size={20} />
-                <span>{n.name}</span>
-                {n.id === "log" && <small>{logs.length}</small>}
-              </button>
-            ))}
+          {navigation.map((n) => (
+            <button
+              key={n.id}
+              className={
+                page === n.id || (page === "admin" && n.id === "resource")
+                  ? "active"
+                  : ""
+              }
+              onClick={() => navigate(n.id)}
+            >
+              <n.icon size={20} />
+              <span>{n.name}</span>
+              {n.id === "log" && <small>{logs.length}</small>}
+            </button>
+          ))}
         </nav>
         <div className="sidebar-bottom">
           <div className="free-note">
@@ -358,7 +443,11 @@ export default function App() {
         <header className="topbar">
           <div className="breadcrumb">
             우리 농장 <ChevronRight size={14} />
-            <span>{navigation.find((n) => n.id === page)?.name}</span>
+            <span>
+              {page === "admin"
+                ? "농장 관리"
+                : navigation.find((n) => n.id === page)?.name}
+            </span>
           </div>
           <div className="top-actions">
             <span className="today-label">
@@ -416,25 +505,39 @@ export default function App() {
               <h1>
                 {page === "home"
                   ? "농장의 오늘을 살펴보세요"
-                  : navigation.find((n) => n.id === page)?.name}
+                  : page === "admin"
+                    ? "농장 관리"
+                    : navigation.find((n) => n.id === page)?.name}
               </h1>
               <p>
                 {page === "home"
                   ? `${me.display_name} 님, 반갑습니다. 오늘의 일도 함께 기록해 볼까요?`
                   : page === "log"
-                    ? "작업의 과정과 결과를 기록하고, 서로의 하루를 이어 보세요."
-                    : page === "plan"
-                      ? "한 해의 계획이 어떻게 자라고 있는지 확인하세요."
-                      : page === "resource"
-                        ? "함께 참고할 문서, 사진, 링크를 한곳에 모아요."
-                        : "우리 농장과 참여자, 소중한 기록을 관리하세요."}
+                    ? "작업을 고르고 사진을 남기세요. 작물별 재배이력도 여기서 찾아볼 수 있어요."
+                    : page === "activity"
+                      ? "회의·교육·행사·판매·나눔 등 농장 밖의 이야기도 함께 남겨요."
+                      : page === "plan"
+                        ? "한 해의 계획이 어떻게 자라고 있는지 확인하세요."
+                        : page === "resource"
+                          ? "함께 참고할 문서, 사진, 링크를 한곳에 모아요."
+                          : "우리 농장과 참여자, 소중한 기록을 관리하세요."}
               </p>
             </div>
             {writable && page !== "admin" && (
               <button
-                className="primary"
+                className="primary record-primary"
+                disabled={page === "activity" && !s.settings.work_catalog}
                 onClick={() =>
-                  setEditor({ kind: page === "home" ? "log" : (page as Kind) })
+                  setEditor({
+                    kind:
+                      page === "home" || page === "activity"
+                        ? "log"
+                        : (page as Kind),
+                    initial:
+                      page === "activity"
+                        ? { record_type: "activity" }
+                        : undefined,
+                  })
                 }
               >
                 <Plus size={19} />
@@ -442,29 +545,102 @@ export default function App() {
                   ? "계획 세우기"
                   : page === "resource"
                     ? "자료 올리기"
-                    : "일지 쓰기"}
+                    : page === "activity"
+                      ? "활동 기록하기"
+                      : "농작업 기록하기"}
               </button>
             )}
           </div>
+          {page === "resource" && (
+            <div className="resource-tools">
+              <button
+                className="text-button"
+                onClick={() => navigate("resource")}
+              >
+                자료 보기
+              </button>
+              {me.role === "admin" && (
+                <button onClick={() => navigate("admin")}>농장 관리</button>
+              )}
+            </div>
+          )}
+          {page === "admin" && (
+            <button
+              className="text-button"
+              onClick={() => navigate("resource")}
+            >
+              자료함으로 돌아가기
+            </button>
+          )}
+          {page === "activity" && !s.settings.work_catalog && (
+            <p className="alert">
+              운영·교류 기록을 사용하려면 데이터베이스 업데이트가 필요합니다.
+            </p>
+          )}
+          {["home", "log"].includes(page) && !s.settings.work_catalog && (
+            <p className="alert">
+              선택형 농작업 입력은 데이터베이스 업데이트 후 사용할 수 있습니다.
+              기존 일지는 계속 조회·작성할 수 있습니다.
+            </p>
+          )}
           {page === "home" ? (
             <>
-              <section className="welcome-banner">
+              <section className="quick-record panel">
                 <div>
-                  <span className="pill">우리 농장의 기록장</span>
-                  <h2>
-                    같이 일하고,
-                    <br />
-                    같이 기억하는 농장.
-                  </h2>
-                  <p>작은 변화도 남겨 두면 다음 계절의 길잡이가 됩니다.</p>
-                  <button
-                    className="text-button"
-                    onClick={() => openCurrentPlans()}
-                  >
-                    올해 계획 살펴보기 <ArrowUpRight size={17} />
-                  </button>
+                  <span className="eyebrow">오늘의 기록, 간단하게</span>
+                  <h2>작업을 고르거나 사진부터 남겨 보세요</h2>
+                  <p className="muted">메모는 짧게, 계획 연결은 필요할 때만.</p>
                 </div>
-                <FarmArt />
+                {writable && (
+                  <div className="quick-actions">
+                    <button
+                      onClick={() =>
+                        setEditor({
+                          kind: "log",
+                          initial: { photo_first: true },
+                        })
+                      }
+                    >
+                      <Camera size={18} />
+                      사진부터 기록
+                    </button>
+                    <button
+                      onClick={() => {
+                        navigate("log");
+                        setNotice(
+                          "복사할 일지를 열고 ‘이전 작업 복사’를 눌러 주세요.",
+                        );
+                      }}
+                    >
+                      이전 작업 복사
+                    </button>
+                  </div>
+                )}
+                {writable && s.settings.work_catalog && (
+                  <div>
+                    <h3>
+                      {frequent.length ? "자주 한 작업" : "빠른 작업 선택"}
+                    </h3>
+                    <div className="work-tasks">
+                      {quick.map((q) => (
+                        <button
+                          key={q.task}
+                          onClick={() =>
+                            setEditor({
+                              kind: "log",
+                              initial: {
+                                work_group: q.group,
+                                work_task: q.task,
+                              },
+                            })
+                          }
+                        >
+                          {q.task}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </section>
               <section className="stats-grid">
                 <Stat
@@ -476,23 +652,23 @@ export default function App() {
                   sub={`${today().slice(0, 4)}년 기준`}
                 />
                 <Stat
-                  label="완료한 계획"
-                  onClick={() => openCurrentPlans("완료")}
-                  value={stats.complete}
+                  label="운영·교류 기록"
+                  onClick={() => navigate("activity")}
+                  value={activityLogs.length}
                   unit="건"
-                  icon={<CheckCircle2 />}
-                  sub="결과를 남긴 계획"
+                  icon={<Users />}
+                  sub="회의·교육·행사 등"
                 />
                 <Stat
-                  label="진행할 계획"
-                  onClick={() => openCurrentPlans("pending")}
-                  value={stats.pending}
+                  label="공유한 자료"
+                  onClick={() => navigate("resource")}
+                  value={active.filter((e) => e.kind === "resource").length}
                   unit="건"
-                  icon={<Clock3 />}
-                  sub="미실행 · 진행중"
+                  icon={<FolderOpen />}
+                  sub="문서·사진·링크"
                 />
                 <Stat
-                  label="쌓인 작업일지"
+                  label="쌓인 농작업일지"
                   onClick={() => navigate("log")}
                   value={logs.length}
                   unit="건"
@@ -503,7 +679,7 @@ export default function App() {
               <div className="dashboard-grid">
                 <section className="panel">
                   <div className="section-heading">
-                    <h2>최근 작업일지</h2>
+                    <h2>최근 농작업일지</h2>
                     <button
                       className="text-button"
                       onClick={() => navigate("log")}
@@ -515,7 +691,7 @@ export default function App() {
                     logs.slice(0, 4).map(card)
                   ) : (
                     <Empty
-                      title="첫 번째 작업일지를 남겨 보세요"
+                      title="첫 번째 농작업일지를 남겨 보세요"
                       description="오늘 한 일과 사진이 우리 농장의 기록이 됩니다."
                       action={
                         writable ? () => setEditor({ kind: "log" }) : undefined
@@ -553,7 +729,7 @@ export default function App() {
                       <p className="empty-small">
                         예정된 작업이 없습니다.
                         <br />
-                        연간 계획에서 다음 작업을 추가해 보세요.
+                        농장계획에서 다음 작업을 추가해 보세요.
                       </p>
                     )}
                     {overdue.length > 0 && (
@@ -579,7 +755,7 @@ export default function App() {
                         onClick={() => navigate("resource")}
                       >
                         <ArrowUpRight size={19} />
-                        <span className="sr-only">자료실 보기</span>
+                        <span className="sr-only">자료함 보기</span>
                       </button>
                     </div>
                     {active.filter((e) => e.kind === "resource").length ? (
@@ -606,15 +782,18 @@ export default function App() {
           ) : (
             <>
               {page === "plan" && (
-                <div className="plan-summary">
-                  <strong>{year}년 실적</strong>
-                  <span>전체 {stats.total}</span>
-                  <span className="green">완료 {stats.complete}</span>
-                  <span>미완료 {stats.pending}</span>
-                  <span>보류 {stats.held}</span>
-                  <span>취소 {stats.cancelled}</span>
-                  <small>계획 외 작업은 완료 건수에 포함하지 않습니다.</small>
-                </div>
+                <details className="plan-results">
+                  <summary>계획 상태·결과 요약 보기</summary>
+                  <div className="plan-summary">
+                    <strong>{year}년 실적</strong>
+                    <span>전체 {stats.total}</span>
+                    <span className="green">완료 {stats.complete}</span>
+                    <span>미완료 {stats.pending}</span>
+                    <span>보류 {stats.held}</span>
+                    <span>취소 {stats.cancelled}</span>
+                    <small>계획 외 작업은 완료 건수에 포함하지 않습니다.</small>
+                  </div>
+                </details>
               )}
               <section className="panel listing">
                 <div className="filters">
@@ -673,7 +852,7 @@ export default function App() {
                       </label>
                     </>
                   )}
-                  {page === "log" && (
+                  {["log", "activity"].includes(page) && (
                     <>
                       <label>
                         시작일
@@ -707,6 +886,125 @@ export default function App() {
                         </select>
                       </label>
                     </>
+                  )}
+                  {page === "log" && (
+                    <>
+                      <label>
+                        작물
+                        <select
+                          aria-label="작물 필터"
+                          value={crop}
+                          onChange={(e) => setCrop(e.target.value)}
+                        >
+                          <option value="">전체 작물</option>
+                          {Array.from(
+                            new Set([
+                              ...s.settings.crops,
+                              ...logs.map((e) => e.crop),
+                            ]),
+                          )
+                            .filter(Boolean)
+                            .map((c) => (
+                              <option key={c}>{c}</option>
+                            ))}
+                        </select>
+                      </label>
+                      <label>
+                        작업 장소
+                        <select
+                          aria-label="작업 장소 필터"
+                          value={zone}
+                          onChange={(e) => setZone(e.target.value)}
+                        >
+                          <option value="">전체 장소</option>
+                          {Array.from(
+                            new Set([
+                              ...s.settings.zones,
+                              ...logs.map((e) => e.zone),
+                            ]),
+                          )
+                            .filter(Boolean)
+                            .map((z) => (
+                              <option key={z}>{z}</option>
+                            ))}
+                        </select>
+                      </label>
+                      <label>
+                        대분류
+                        <select
+                          aria-label="대분류 필터"
+                          value={workGroup}
+                          onChange={(e) => {
+                            setWorkGroup(e.target.value);
+                            setWorkTask("");
+                          }}
+                        >
+                          <option value="">전체 작업</option>
+                          <option value="__legacy">분류 미지정</option>
+                          {Array.from(
+                            new Set([
+                              ...workGroupNames(s.settings.work_catalog || {}),
+                              ...logs.map((e) => e.work_group || ""),
+                            ]),
+                          )
+                            .filter(Boolean)
+                            .map((g) => (
+                              <option key={g}>{g}</option>
+                            ))}
+                        </select>
+                      </label>
+                      <label>
+                        세부작업
+                        <select
+                          aria-label="세부작업 필터"
+                          value={workTask}
+                          onChange={(e) => setWorkTask(e.target.value)}
+                        >
+                          <option value="">전체 세부작업</option>
+                          {Array.from(
+                            new Set([
+                              ...(workGroup
+                                ? s.settings.work_catalog?.[workGroup] || []
+                                : Object.values(
+                                    s.settings.work_catalog || {},
+                                  ).flat()),
+                              ...logs
+                                .filter(
+                                  (e) =>
+                                    !workGroup || e.work_group === workGroup,
+                                )
+                                .map((e) => e.work_task || ""),
+                            ]),
+                          )
+                            .filter(Boolean)
+                            .map((t) => (
+                              <option key={t}>{t}</option>
+                            ))}
+                        </select>
+                      </label>
+                    </>
+                  )}
+                  {page === "activity" && (
+                    <label>
+                      활동 분류
+                      <select
+                        aria-label="활동 분류 필터"
+                        value={activityCategory}
+                        onChange={(e) => setActivityCategory(e.target.value)}
+                      >
+                        <option value="">전체 활동</option>
+                        {[
+                          "회의·운영",
+                          "교육·견학",
+                          "행사·교류",
+                          "판매·홍보",
+                          "나눔·봉사",
+                          "자재·행정",
+                        ].map((c) => (
+                          <option key={c}>{c}</option>
+                        ))}
+                      </select>
+                    </label>
                   )}
                   {page === "resource" && (
                     <label>
@@ -763,14 +1061,16 @@ export default function App() {
                   <strong>
                     {filtered.length}개의{" "}
                     {page === "log"
-                      ? "작업일지"
-                      : page === "plan"
-                        ? "계획"
-                        : "자료"}
+                      ? "농작업일지"
+                      : page === "activity"
+                        ? "운영·교류 기록"
+                        : page === "plan"
+                          ? "계획"
+                          : "자료"}
                   </strong>
                   <small>
-                    {page === "log"
-                      ? "실제 작업일 기준"
+                    {["log", "activity"].includes(page)
+                      ? "실제 활동일 기준"
                       : page === "plan"
                         ? "목표 연도 기준 · 연결된 일지는 다른 연도도 포함"
                         : "새로 등록한 순"}
@@ -824,7 +1124,12 @@ export default function App() {
                                 <p>{e.result || "결과 미입력"}</p>
                               </td>
                               <td>
-                                {logs.filter((l) => l.plan_id === e.id).length}
+                                {
+                                  active.filter(
+                                    (l) =>
+                                      l.kind === "log" && l.plan_id === e.id,
+                                  ).length
+                                }
                                 건
                               </td>
                             </tr>
@@ -844,14 +1149,28 @@ export default function App() {
                       author ||
                       plan ||
                       category ||
-                      planStatus
+                      planStatus ||
+                      crop ||
+                      zone ||
+                      workGroup ||
+                      workTask ||
+                      activityCategory
                         ? "조건에 맞는 기록이 없습니다"
                         : "아직 기록이 없습니다"
                     }
                     description="새로운 기록을 추가하거나 검색 조건을 바꿔 보세요."
                     action={
-                      writable
-                        ? () => setEditor({ kind: page as Kind })
+                      writable &&
+                      (page !== "activity" || !!s.settings.work_catalog)
+                        ? () =>
+                            setEditor({
+                              kind:
+                                page === "activity" ? "log" : (page as Kind),
+                              initial:
+                                page === "activity"
+                                  ? { record_type: "activity" }
+                                  : undefined,
+                            })
                         : undefined
                     }
                   />
@@ -875,6 +1194,8 @@ export default function App() {
         <Editor
           kind={editor.kind}
           entry={editor.entry}
+          initial={editor.initial}
+          userId={me.user_id}
           snapshot={s}
           onClose={() => setEditor(null)}
           onSaved={async () => {
@@ -898,6 +1219,49 @@ export default function App() {
             setDetail(null);
           }}
           onRefresh={refresh}
+          onCopy={
+            writable && detail.kind === "log"
+              ? () => {
+                  const source =
+                    s.entries.find((e) => e.id === detail.id) || detail;
+                  setEditor({
+                    kind: "log",
+                    initial: {
+                      copied: true,
+                      title: source.title,
+                      body: source.body,
+                      crop: source.crop,
+                      zone: source.zone,
+                      plan_id: source.plan_id,
+                      record_type: source.record_type,
+                      work_group: source.work_group,
+                      work_task: source.work_task,
+                      activity_category: source.activity_category,
+                      quantity: source.quantity,
+                      quantity_unit: source.quantity_unit,
+                      participant_ids: source.participant_ids,
+                    },
+                  });
+                  setDetail(null);
+                }
+              : undefined
+          }
+          onRecord={
+            writable && detail.kind === "plan"
+              ? (activity = false) => {
+                  setEditor({
+                    kind: "log",
+                    initial: {
+                      plan_id: detail.id,
+                      crop: detail.crop,
+                      zone: detail.zone,
+                      record_type: activity ? "activity" : "farm",
+                    },
+                  });
+                  setDetail(null);
+                }
+              : undefined
+          }
           onOpen={setDetail}
         />
       )}

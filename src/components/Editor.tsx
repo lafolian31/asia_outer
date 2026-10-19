@@ -2,21 +2,33 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { X, ImagePlus, Save } from "lucide-react";
 import type { Entry, Kind, Snapshot } from "../lib/types";
 import { compressPhoto, rpc, upload } from "../lib/api";
+import { activityCategories, recordTitle, workGroupNames } from "../lib/work";
 import { readableError, statuses, today } from "../lib/utils.js";
-const labels = { log: "작업일지", plan: "연간 계획", resource: "공유 자료" };
+const labels = { log: "농작업일지", plan: "농장계획", resource: "자료" };
 export function Editor({
   kind,
   entry,
+  initial,
+  userId,
   snapshot,
   onClose,
   onSaved,
 }: {
   kind: Kind;
   entry?: Entry;
+  initial?: Partial<Entry> & { photo_first?: boolean; copied?: boolean };
+  userId: string;
   snapshot: Snapshot;
   onClose: () => void;
   onSaved: () => Promise<void>;
 }) {
+  const enhanced = kind === "log" && !!snapshot.settings.work_catalog;
+  let recent: { crop?: string; zone?: string } = {};
+  try {
+    recent = JSON.parse(localStorage.getItem(`farm-recent-${userId}`) || "{}");
+  } catch {
+    /* Optional device preference. */
+  }
   const [form, setForm] = useState<any>(
     entry
       ? { ...entry }
@@ -31,14 +43,34 @@ export function Editor({
           status: "미실행",
           actual_date: "",
           result: "",
-          zone: "",
-          crop: "",
+          zone: enhanced ? recent.zone || "" : "",
+          crop: enhanced ? recent.crop || "" : "",
           assignee: "",
           plan_id: "",
           category: snapshot.settings.resource_categories?.[0] || "일반",
           url: "",
+          record_type: "farm",
+          work_group: "",
+          work_task: "",
+          activity_category:
+            initial?.record_type === "activity" ? "회의·운영" : "",
+          quantity: "",
+          quantity_unit: "",
+          participant_ids: [],
+          ...initial,
         },
   );
+  const activity = form.record_type === "activity";
+  const catalog = snapshot.settings.work_catalog || {};
+  const [autoTitle, setAutoTitle] = useState(!entry && !initial?.title);
+  const [newCrop, setNewCrop] = useState("");
+  const [extraCrops, setExtraCrops] = useState<string[]>([]);
+  const title =
+    enhanced && autoTitle
+      ? activity
+        ? form.activity_category || "운영·교류"
+        : recordTitle(form.crop, form.work_task || form.work_group)
+      : form.title;
   const [base, setBase] = useState(entry);
   const id = useRef(entry?.id || crypto.randomUUID());
   const [files, setFiles] = useState<File[]>([]);
@@ -49,9 +81,12 @@ export function Editor({
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     dialog.current?.showModal();
+    if (initial?.photo_first) document.getElementById("attachments")?.click();
   }, []);
-  const change = (name: string, value: string) =>
+  const change = (name: string, value: string) => {
+    if (name === "title") setAutoTitle(false);
     setForm({ ...form, [name]: value });
+  };
   async function save(event: FormEvent) {
     event.preventDefault();
     if (saving.current) return;
@@ -65,6 +100,17 @@ export function Editor({
         throw new Error(
           "인터넷 연결이 끊겼습니다. 입력 내용을 유지했으니 연결 후 다시 저장해 주세요.",
         );
+      if (
+        enhanced &&
+        !entry &&
+        !activity &&
+        !form.work_group &&
+        !form.work_task &&
+        !form.body.trim() &&
+        !files.length &&
+        !form.title.trim()
+      )
+        throw new Error("작업을 선택하거나 사진·메모를 추가해 주세요.");
       if (
         kind === "resource" &&
         !form.url &&
@@ -85,6 +131,11 @@ export function Editor({
       const data = {
         ...form,
         kind,
+        title,
+        quantity:
+          form.quantity === "" || form.quantity == null
+            ? null
+            : Number(form.quantity),
         work_date: kind === "log" ? form.work_date : null,
         target_year: kind === "plan" ? Number(form.target_year) : null,
         start_date: kind === "plan" ? form.start_date : null,
@@ -106,6 +157,16 @@ export function Editor({
         await upload(saved.id, remaining[0]);
         remaining = remaining.slice(1);
         setFiles(remaining);
+      }
+      if (enhanced && !activity) {
+        try {
+          localStorage.setItem(
+            `farm-recent-${userId}`,
+            JSON.stringify({ crop: form.crop, zone: form.zone }),
+          );
+        } catch {
+          /* Saving records never depends on device preferences. */
+        }
       }
       await onSaved();
       onClose();
@@ -136,7 +197,9 @@ export function Editor({
         required={required}
         value={form[name] ?? ""}
         onChange={(e) => change(name, e.target.value)}
-        maxLength={type === "text" ? 160 : undefined}
+        maxLength={
+          type === "text" ? (name === "quantity_unit" ? 30 : 160) : undefined
+        }
       />
     </label>
   );
@@ -158,7 +221,8 @@ export function Editor({
           <div>
             <span className="eyebrow">함께 남기는 농장의 기록</span>
             <h2>
-              {labels[kind]} {entry ? "수정" : "작성"}
+              {activity && enhanced ? "운영·교류" : labels[kind]}{" "}
+              {entry ? "수정" : "작성"}
             </h2>
           </div>
           <button
@@ -174,9 +238,110 @@ export function Editor({
             <X />
           </button>
         </div>
+        {initial?.copied && (
+          <p className="inset">
+            이전 작업 내용을 복사했습니다. 날짜는 오늘, 작성자는 본인으로
+            저장됩니다. 사진과 댓글은 복사하지 않습니다.
+          </p>
+        )}
         <fieldset disabled={busy}>
-          {input("title", "제목", "text", true)}
-          {kind === "log" && input("work_date", "작업 날짜", "date", true)}
+          {kind === "log" &&
+            input(
+              "work_date",
+              activity ? "활동 날짜" : "작업 날짜",
+              "date",
+              true,
+            )}
+          {enhanced && (
+            <>
+              {!activity ? (
+                <>
+                  <h3>어떤 작업을 했나요?</h3>
+                  <div
+                    className="work-groups"
+                    role="group"
+                    aria-label="작업 대분류"
+                  >
+                    {Array.from(
+                      new Set([
+                        ...workGroupNames(catalog),
+                        ...(form.work_group ? [form.work_group] : []),
+                      ]),
+                    ).map((group) => (
+                      <button
+                        key={group}
+                        type="button"
+                        aria-pressed={form.work_group === group}
+                        onClick={() =>
+                          setForm({ ...form, work_group: group, work_task: "" })
+                        }
+                      >
+                        {group}
+                      </button>
+                    ))}
+                  </div>
+                  {form.work_group && (
+                    <div
+                      className="work-tasks"
+                      role="group"
+                      aria-label="세부작업 선택"
+                    >
+                      {(catalog[form.work_group] || []).map((task) => (
+                        <button
+                          type="button"
+                          key={task}
+                          aria-pressed={form.work_task === task}
+                          onClick={() => change("work_task", task)}
+                        >
+                          {task}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <label>
+                    세부작업 · 직접 입력 가능
+                    <input
+                      aria-label="세부작업"
+                      maxLength={100}
+                      value={form.work_task || ""}
+                      onChange={(e) => change("work_task", e.target.value)}
+                      placeholder="목록에서 선택하거나 직접 입력하세요"
+                    />
+                  </label>
+                </>
+              ) : (
+                <label>
+                  활동 분류
+                  <select
+                    aria-label="활동 분류"
+                    value={form.activity_category}
+                    onChange={(e) =>
+                      change("activity_category", e.target.value)
+                    }
+                  >
+                    {activityCategories.map((c) => (
+                      <option key={c}>{c}</option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              <label>
+                제목{" "}
+                <small>
+                  {autoTitle
+                    ? "선택한 작업으로 자동 생성 · 직접 수정 가능"
+                    : "직접 입력"}
+                </small>
+                <input
+                  aria-label="제목"
+                  maxLength={160}
+                  value={title}
+                  onChange={(e) => change("title", e.target.value)}
+                />
+              </label>
+            </>
+          )}
+          {!enhanced && input("title", "제목", "text", true)}
           {kind === "plan" && (
             <>
               <div className="form-grid">
@@ -199,15 +364,21 @@ export function Editor({
           )}
           <label>
             {kind === "log"
-              ? "한 일과 실행 결과"
+              ? enhanced
+                ? activity
+                  ? "활동 내용"
+                  : "작업 내용 및 특이사항"
+                : "한 일과 실행 결과"
               : kind === "plan"
                 ? "계획 내용"
                 : "자료 설명"}
-            {kind === "log" && <span className="required"> *</span>}
+            {kind === "log" && !enhanced && (
+              <span className="required"> *</span>
+            )}
             <textarea
               rows={5}
               maxLength={20000}
-              required={kind === "log"}
+              required={kind === "log" && !enhanced}
               placeholder={
                 kind === "log"
                   ? "어떤 일을 했고, 결과는 어땠나요? 다음 작업에 참고할 내용도 남겨 주세요."
@@ -217,11 +388,12 @@ export function Editor({
               onChange={(e) => change("body", e.target.value)}
             />
           </label>
-          {kind !== "resource" && (
+          {kind !== "resource" && !activity && (
             <div className="form-grid">
               <label>
-                구역 <small>선택</small>
+                {enhanced ? "작업 장소" : "구역"} <small>선택</small>
                 <select
+                  aria-label={enhanced ? "작업 장소" : "구역"}
                   value={form.zone}
                   onChange={(e) => change("zone", e.target.value)}
                 >
@@ -239,6 +411,7 @@ export function Editor({
               <label>
                 작물 <small>선택</small>
                 <select
+                  aria-label="작물"
                   value={form.crop}
                   onChange={(e) => change("crop", e.target.value)}
                 >
@@ -246,6 +419,7 @@ export function Editor({
                   {Array.from(
                     new Set([
                       ...snapshot.settings.crops,
+                      ...extraCrops,
                       ...(form.crop ? [form.crop] : []),
                     ]),
                   ).map((z) => (
@@ -255,9 +429,95 @@ export function Editor({
               </label>
             </div>
           )}
+          {enhanced && !activity && (
+            <div className="crop-add">
+              <label>
+                새 작물 이름
+                <input
+                  aria-label="새 작물 이름"
+                  value={newCrop}
+                  maxLength={80}
+                  onChange={(e) => setNewCrop(e.target.value)}
+                />
+              </label>
+              <button
+                type="button"
+                disabled={!newCrop.trim()}
+                onClick={async () => {
+                  setBusy(true);
+                  setError("");
+                  try {
+                    await rpc("add_crop", { p_crop: newCrop });
+                    setExtraCrops([...extraCrops, newCrop.trim()]);
+                    change("crop", newCrop.trim());
+                    setNewCrop("");
+                  } catch (e) {
+                    setError(readableError(e));
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                작물 등록
+              </button>
+            </div>
+          )}
+          {enhanced && (
+            <details className="optional-fields">
+              <summary>작업량·참여자 추가 (선택)</summary>
+              {!activity && (
+                <div className="form-grid">
+                  <label>
+                    작업량
+                    <input
+                      aria-label="작업량"
+                      type="number"
+                      min="0"
+                      max="999999999"
+                      step="any"
+                      value={form.quantity ?? ""}
+                      onChange={(e) => change("quantity", e.target.value)}
+                    />
+                  </label>
+                  {input("quantity_unit", "단위")}
+                </div>
+              )}
+              <fieldset>
+                <legend>참여자</legend>
+                <div className="participant-options">
+                  {snapshot.members
+                    .filter(
+                      (m) =>
+                        m.active || form.participant_ids?.includes(m.user_id),
+                    )
+                    .map((m) => (
+                      <label key={m.user_id}>
+                        <input
+                          type="checkbox"
+                          checked={(form.participant_ids || []).includes(
+                            m.user_id,
+                          )}
+                          onChange={(e) =>
+                            setForm({
+                              ...form,
+                              participant_ids: e.target.checked
+                                ? [...(form.participant_ids || []), m.user_id]
+                                : form.participant_ids.filter(
+                                    (id: string) => id !== m.user_id,
+                                  ),
+                            })
+                          }
+                        />
+                        {m.display_name}
+                      </label>
+                    ))}
+                </div>
+              </fieldset>
+            </details>
+          )}
           {kind === "log" && (
             <label>
-              연결할 연간 계획 <small>선택 · 다른 연도 계획도 연결 가능</small>
+              관련 농장계획 <small>선택 · 다른 연도 계획도 연결 가능</small>
               <select
                 value={form.plan_id}
                 onChange={(e) => change("plan_id", e.target.value)}
@@ -335,7 +595,7 @@ export function Editor({
                     ))}
                   </select>
                   <small>
-                    새 분류는 관리자가 농장 관리 → 자료실 분류 관리에서 추가할
+                    새 분류는 관리자가 농장 관리 → 자료함 분류 관리에서 추가할
                     수 있습니다.
                   </small>
                 </label>

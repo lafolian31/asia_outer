@@ -255,6 +255,9 @@ sql(
   ),
 );
 sql(readFileSync("supabase/migrations/202610190001_discussion.sql", "utf8"));
+sql(
+  readFileSync("supabase/migrations/202610190002_selectable_work.sql", "utf8"),
+);
 writeFileSync(
   replica ? ".env.restore-test" : ".env.test",
   `SUPABASE_URL=http://127.0.0.1:${apiPort}\nSUPABASE_ANON_KEY=${config.anon}\nSUPABASE_SERVICE_ROLE_KEY=${config.service}\n`,

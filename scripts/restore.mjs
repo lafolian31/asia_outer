@@ -60,6 +60,8 @@ for (const e of manifest.entries)
     "assignee",
   ])
     remap(e[key]);
+for (const e of manifest.entries)
+  for (const id of e.participant_ids || []) remap(id);
 for (const c of manifest.comments || []) {
   remap(c.author_id);
   remap(c.updated_by);
@@ -90,6 +92,9 @@ check(
       zones: manifest.settings.zones,
       crops: manifest.settings.crops,
       resource_categories: manifest.settings.resource_categories || ["일반"],
+      ...(manifest.settings.work_catalog
+        ? { work_catalog: manifest.settings.work_catalog }
+        : {}),
       version: manifest.settings.version,
     })
     .eq("id", true),
@@ -101,6 +106,7 @@ const entries = manifest.entries.map((e) => ({
   completed_by: remap(e.completed_by),
   deleted_by: remap(e.deleted_by),
   assignee: remap(e.assignee),
+  participant_ids: (e.participant_ids || []).map(remap),
 }));
 for (const group of [
   entries.filter((e) => e.kind === "plan"),

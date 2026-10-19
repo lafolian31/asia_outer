@@ -2,6 +2,13 @@ export type Role = "admin" | "editor" | "viewer";
 export type Kind = "log" | "plan" | "resource";
 export type Entry = {
   id: string;
+  record_type?: "farm" | "activity" | null;
+  work_group?: string;
+  work_task?: string;
+  activity_category?: string;
+  quantity?: number | null;
+  quantity_unit?: string;
+  participant_ids?: string[];
   kind: Kind;
   title: string;
   body: string;
@@ -50,6 +57,7 @@ export type Settings = {
   zones: string[];
   crops: string[];
   resource_categories?: string[];
+  work_catalog?: Record<string, string[]>;
   version: number;
 };
 export type Snapshot = {
