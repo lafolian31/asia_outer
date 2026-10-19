@@ -406,10 +406,19 @@ nav button small {
   margin: 23px 0 29px;
 }
 .stat-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  color: inherit;
+  font-weight: inherit;
   background: #fff;
   border: 1px solid var(--line);
   padding: 21px 22px;
   border-radius: 12px;
+}
+.stat-card:hover {
+  background: #f0f4ed;
+  border-color: #92b59b;
 }
 .stat-top {
   display: flex;

@@ -54,6 +54,7 @@ export default function App() {
     [plan, setPlan] = useState(""),
     [year, setYear] = useState(Number(today().slice(0, 4))),
     [month, setMonth] = useState(""),
+    [planStatus, setPlanStatus] = useState(""),
     [category, setCategory] = useState("");
   const me = s?.members.find((m) => m.user_id === session?.user.id && m.active);
   const writable = !!me && me.role !== "viewer";
@@ -151,6 +152,12 @@ export default function App() {
     setPlan("");
     setAuthor("");
     setMonth("");
+    setPlanStatus("");
+  }
+  function openCurrentPlans(status = "") {
+    navigate("plan");
+    setYear(Number(today().slice(0, 4)));
+    setPlanStatus(status);
   }
 
   if (!configured)
@@ -237,6 +244,14 @@ export default function App() {
               e.end_date! >= `${year}-${month}-01`))),
     )
     .filter((e) => !category || e.category === category)
+    .filter(
+      (e) =>
+        page !== "plan" ||
+        !planStatus ||
+        (planStatus === "pending"
+          ? ["미실행", "진행중"].includes(e.status)
+          : e.status === planStatus),
+    )
     .sort((a, b) =>
       (b.work_date || b.start_date || b.created_at).localeCompare(
         a.work_date || a.start_date || a.created_at,
@@ -444,7 +459,7 @@ export default function App() {
                   <p>작은 변화도 남겨 두면 다음 계절의 길잡이가 됩니다.</p>
                   <button
                     className="text-button"
-                    onClick={() => navigate("plan")}
+                    onClick={() => openCurrentPlans()}
                   >
                     올해 계획 살펴보기 <ArrowUpRight size={17} />
                   </button>
@@ -454,6 +469,7 @@ export default function App() {
               <section className="stats-grid">
                 <Stat
                   label="올해 계획"
+                  onClick={() => openCurrentPlans()}
                   value={stats.total}
                   unit="건"
                   icon={<CalendarDays />}
@@ -461,6 +477,7 @@ export default function App() {
                 />
                 <Stat
                   label="완료한 계획"
+                  onClick={() => openCurrentPlans("완료")}
                   value={stats.complete}
                   unit="건"
                   icon={<CheckCircle2 />}
@@ -468,6 +485,7 @@ export default function App() {
                 />
                 <Stat
                   label="진행할 계획"
+                  onClick={() => openCurrentPlans("pending")}
                   value={stats.pending}
                   unit="건"
                   icon={<Clock3 />}
@@ -475,6 +493,7 @@ export default function App() {
                 />
                 <Stat
                   label="쌓인 작업일지"
+                  onClick={() => navigate("log")}
                   value={logs.length}
                   unit="건"
                   icon={<BookOpen />}
@@ -634,6 +653,22 @@ export default function App() {
                               {Number(m)}월
                             </option>
                           ))}
+                        </select>
+                      </label>
+                      <label>
+                        계획 상태
+                        <select
+                          aria-label="계획 상태"
+                          value={planStatus}
+                          onChange={(e) => setPlanStatus(e.target.value)}
+                        >
+                          <option value="">전체 상태</option>
+                          <option value="pending">미실행 · 진행중</option>
+                          {["미실행", "진행중", "완료", "보류", "취소"].map(
+                            (status) => (
+                              <option key={status}>{status}</option>
+                            ),
+                          )}
                         </select>
                       </label>
                     </>
@@ -803,7 +838,13 @@ export default function App() {
                 ) : (
                   <Empty
                     title={
-                      query || from || to || author || plan || category
+                      query ||
+                      from ||
+                      to ||
+                      author ||
+                      plan ||
+                      category ||
+                      planStatus
                         ? "조건에 맞는 기록이 없습니다"
                         : "아직 기록이 없습니다"
                     }
@@ -869,15 +910,22 @@ function Stat({
   unit,
   icon,
   sub,
+  onClick,
 }: {
   label: string;
   value: number;
   unit: string;
   icon: React.ReactNode;
   sub: string;
+  onClick: () => void;
 }) {
   return (
-    <div className="stat-card">
+    <button
+      type="button"
+      className="stat-card"
+      onClick={onClick}
+      aria-label={`${label} ${value}${unit} 목록 보기`}
+    >
       <div className="stat-top">
         <span>{label}</span>
         {icon}
@@ -887,7 +935,7 @@ function Stat({
         <small>{unit}</small>
       </div>
       <small>{sub}</small>
-    </div>
+    </button>
   );
 }
 function Empty({
