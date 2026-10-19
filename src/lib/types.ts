@@ -58,3 +58,23 @@ export type Snapshot = {
   assets: Asset[];
   settings: Settings;
 };
+
+export type Comment = {
+  id: string;
+  entry_id: string;
+  author_id: string;
+  body: string;
+  created_at: string;
+  updated_at: string;
+  updated_by: string;
+  deleted_at: string | null;
+  version: number;
+};
+export type ReactionKind = "like" | "love" | "laugh" | "wow";
+export type Reaction = {
+  id: string;
+  entry_id: string;
+  user_id: string;
+  kind: ReactionKind;
+  updated_at: string;
+};

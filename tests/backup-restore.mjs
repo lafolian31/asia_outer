@@ -75,6 +75,21 @@ assert.deepEqual(
   restoredSettings.data.resource_categories,
   manifest.settings.resource_categories,
 );
+for (const [table, items] of [
+  ["entry_comments", manifest.comments || []],
+  ["entry_reactions", manifest.reactions || []],
+]) {
+  const copy = await db.from(table).select("*").order("id");
+  assert.ifError(copy.error);
+  const expected = items
+    .map((r) =>
+      table === "entry_comments"
+        ? { ...r, author_id: map[r.author_id], updated_by: map[r.updated_by] }
+        : { ...r, user_id: map[r.user_id] },
+    )
+    .sort((a, b) => a.id.localeCompare(b.id));
+  assert.deepEqual(copy.data, expected);
+}
 const records = await db.from("entries").select("*");
 assert.ifError(records.error);
 assert.equal(records.data.length, manifest.entries.length);

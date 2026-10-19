@@ -41,6 +41,18 @@ try {
   const [entries, members, assets, settings, audit] = await Promise.all(
     ["entries", "members", "assets", "farm_settings", "audit_log"].map(all),
   );
+  async function optionalAll(table) {
+    try {
+      return await all(table);
+    } catch (error) {
+      if (["42P01", "PGRST205"].includes(error?.code)) return [];
+      throw error;
+    }
+  }
+  const [comments, reactions] = await Promise.all([
+    optionalAll("entry_comments"),
+    optionalAll("entry_reactions"),
+  ]);
   const manifest = {
     format: 1,
     exported_at: new Date().toISOString(),
@@ -49,6 +61,8 @@ try {
     assets,
     settings: settings[0],
     audit,
+    comments,
+    reactions,
     sha256: {},
   };
   await mkdir(out, { recursive: false, mode: 0o700 });
@@ -70,7 +84,11 @@ try {
   if (
     JSON.stringify(after.map((e) => [e.id, e.version])) !==
       JSON.stringify(entries.map((e) => [e.id, e.version])) ||
-    JSON.stringify(afterAssets) !== JSON.stringify(assets)
+    JSON.stringify(afterAssets) !== JSON.stringify(assets) ||
+    JSON.stringify(await optionalAll("entry_comments")) !==
+      JSON.stringify(comments) ||
+    JSON.stringify(await optionalAll("entry_reactions")) !==
+      JSON.stringify(reactions)
   )
     throw Error(
       "Records changed during backup. Ask participants to pause edits and run again into a new directory.",

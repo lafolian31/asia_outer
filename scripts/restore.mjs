@@ -26,7 +26,13 @@ const check = (r) => {
   if (r.error) throw r.error;
   return r.data;
 };
-for (const table of ["members", "entries", "assets"]) {
+for (const table of [
+  "members",
+  "entries",
+  "assets",
+  "entry_comments",
+  "entry_reactions",
+]) {
   const r = await db.from(table).select("*", { count: "exact", head: true });
   check(r);
   if (r.count) throw Error("Restore requires an empty target: " + table);
@@ -54,6 +60,11 @@ for (const e of manifest.entries)
     "assignee",
   ])
     remap(e[key]);
+for (const c of manifest.comments || []) {
+  remap(c.author_id);
+  remap(c.updated_by);
+}
+for (const r of manifest.reactions || []) remap(r.user_id);
 for (const a of manifest.assets.filter((a) => a.ready)) {
   remap(a.author_id);
   if (!/^[0-9a-f-]{36}\/[0-9a-f-]{36}$/.test(a.path))
@@ -97,6 +108,26 @@ for (const group of [
 ])
   for (let i = 0; i < group.length; i += 100)
     check(await db.from("entries").insert(group.slice(i, i + 100)));
+for (const [table, rows] of [
+  [
+    "entry_comments",
+    (manifest.comments || []).map((c) => ({
+      ...c,
+      author_id: remap(c.author_id),
+      updated_by: remap(c.updated_by),
+    })),
+  ],
+  [
+    "entry_reactions",
+    (manifest.reactions || []).map((r) => ({
+      ...r,
+      user_id: remap(r.user_id),
+    })),
+  ],
+]) {
+  for (let i = 0; i < rows.length; i += 100)
+    check(await db.from(table).insert(rows.slice(i, i + 100)));
+}
 for (const a of manifest.assets.filter((a) => a.ready)) {
   check(
     await db.from("assets").insert({ ...a, author_id: remap(a.author_id) }),

@@ -3,6 +3,7 @@ import { Download, ExternalLink, X, Trash2, Pencil } from "lucide-react";
 import type { Entry, Member, Snapshot, Asset } from "../lib/types";
 import { fileBlob, rpc } from "../lib/api";
 import { canEdit, download, readableError, safeUrl } from "../lib/utils.js";
+import { Discussion } from "./Discussion";
 export function Attachment({ asset }: { asset: Asset }) {
   const [src, setSrc] = useState("");
   const [error, setError] = useState("");
@@ -216,6 +217,9 @@ export function Detail({
           <Attachment key={a.id} asset={a} />
         ))}
       </div>
+      {(e.kind === "log" || e.kind === "resource") && !e.deleted_at && (
+        <Discussion key={e.id} entry={e} me={me} members={s.members} />
+      )}
       <p className="timestamp">
         작성{" "}
         {new Date(e.created_at).toLocaleString("ko-KR", {

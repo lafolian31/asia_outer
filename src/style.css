@@ -1801,3 +1801,41 @@ textarea::placeholder {
     font-size: 24px;
   }
 }
+
+.discussion {
+  border-top: 1px solid var(--line);
+  margin-top: 24px;
+  padding-top: 20px;
+}
+.reaction-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0 22px;
+}
+.reaction-list button {
+  font-size: 13px;
+  padding: 8px 12px;
+}
+.reaction-list button[aria-pressed="true"] {
+  background: #e6f1e8;
+  border-color: var(--green);
+  color: var(--green);
+}
+.comment {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.comment-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.comment-form {
+  margin-top: 18px;
+}
+.comment .prose {
+  overflow-wrap: anywhere;
+}

@@ -209,6 +209,8 @@ test("관리자 수정·휴지통 복원·CSV·파일 포함 백업", async ({ p
     manifest.entries.some((e: any) => e.id === fixtures.log.id),
   ).toBeTruthy();
   expect(Object.keys(zip).some((k) => k.startsWith("files/"))).toBeTruthy();
+  expect(Array.isArray(manifest.comments)).toBeTruthy();
+  expect(Array.isArray(manifest.reactions)).toBeTruthy();
   expect(JSON.stringify(manifest)).not.toMatch(
     /access_token|refresh_token|password|token_hash/,
   );

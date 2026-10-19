@@ -9,6 +9,7 @@
     "preview": "vite preview --host 0.0.0.0",
     "test": "node --test tests/unit.test.mjs",
     "test:integration": "node --env-file=.env.test --test tests/integration.mjs",
+    "test:discussion": "node --env-file=.env.test --test tests/discussion.integration.mjs",
     "test:e2e": "playwright test",
     "db:start": "node scripts/local-stack.mjs start",
     "db:reset": "node scripts/local-stack.mjs reset",

@@ -57,3 +57,7 @@ FARM_LOCAL_INSTANCE=restore npm run db:stop
 React·TypeScript·Vite 화면을 Cloudflare Pages Free에 정적으로 배포하고, Supabase Free의 Auth·PostgreSQL·비공개 Storage에 연결합니다. 추가 결제 기능, SMS, 유료 이미지 변환, 유료 백업은 활성화하지 않습니다. 브라우저에 들어가는 것은 공개용 publishable/anon 키뿐이며 `service_role` 키는 절대 `VITE_` 변수나 프런트엔드에 넣지 않습니다.
 
 농장 이름의 초기값은 `우리 농장 (임시 이름)`입니다. 실제 구역·작물·참여자·작업 내용은 만들어 넣지 않습니다. 관리자가 앱에서 설정합니다.
+
+### 감정표현·댓글 검증
+
+`npm run db:start` → `npm run test:integration`으로 로컬 서비스와 시험 계정을 준비한 뒤 `npm run test:discussion`, `npm run test:e2e -- tests/browser/discussion.spec.ts`를 실행합니다. 실제 운영 프로젝트를 대상으로 시험 데이터를 만들지 않습니다. 신규 설치는 마이그레이션 파일을 날짜순으로 모두 실행하고, 기존 설치는 새 마이그레이션만 적용합니다.

@@ -36,6 +36,14 @@ export async function all<T>(table: string): Promise<T[]> {
     if (data.length < 500) return rows;
   }
 }
+export async function optionalAll<T>(table: string): Promise<T[]> {
+  try {
+    return await all<T>(table);
+  } catch (error: any) {
+    if (["42P01", "PGRST205"].includes(error?.code)) return [];
+    throw error;
+  }
+}
 export async function snapshot(): Promise<Snapshot> {
   const [entries, members, assets, settings] = await Promise.all([
     all<Entry>("entries"),
@@ -185,11 +193,22 @@ export async function backup(s: Snapshot) {
     throw new Error(
       "100MB 이상 백업은 PC에서 운영 안내의 백업 명령을 사용해 주세요.",
     );
-  const audit = await all("audit_log");
+  const [audit, comments, reactions] = await Promise.all([
+    all("audit_log"),
+    optionalAll("entry_comments"),
+    optionalAll("entry_reactions"),
+  ]);
   const files: Record<string, Uint8Array> = {
     "manifest.json": strToU8(
       JSON.stringify(
-        { format: 1, exported_at: new Date().toISOString(), ...s, audit },
+        {
+          format: 1,
+          exported_at: new Date().toISOString(),
+          ...s,
+          audit,
+          comments,
+          reactions,
+        },
         null,
         2,
       ),
@@ -199,11 +218,17 @@ export async function backup(s: Snapshot) {
     files["files/" + a.path] = new Uint8Array(
       await (await fileBlob(a)).arrayBuffer(),
     );
-  const latest = await snapshot();
+  const [latest, latestComments, latestReactions] = await Promise.all([
+    snapshot(),
+    optionalAll("entry_comments"),
+    optionalAll("entry_reactions"),
+  ]);
   if (
     JSON.stringify(latest.entries.map((e) => [e.id, e.version])) !==
       JSON.stringify(s.entries.map((e) => [e.id, e.version])) ||
-    JSON.stringify(latest.assets) !== JSON.stringify(s.assets)
+    JSON.stringify(latest.assets) !== JSON.stringify(s.assets) ||
+    JSON.stringify(latestComments) !== JSON.stringify(comments) ||
+    JSON.stringify(latestReactions) !== JSON.stringify(reactions)
   )
     throw new Error(
       "백업 도중 기록이 바뀌었습니다. 잠시 편집을 멈추고 다시 백업해 주세요.",
