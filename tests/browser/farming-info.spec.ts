@@ -30,12 +30,17 @@ for (const mobile of [false, true]) {
       await expect(
         page.getByRole("heading", { name: "영농정보", exact: true }),
       ).toBeVisible();
-      await expect(page.locator(".info-card")).toHaveCount(4);
+      await expect(page.locator(".info-card")).toHaveCount(6);
       for (const [name, url] of [
         ["기상청 날씨누리", "https://www.weather.go.kr/w/index.do"],
         ["흙토람", "https://soil.rda.go.kr/"],
         ["농사로", "https://www.nongsaro.go.kr/"],
         ["농업기상재해 조기경보시스템", "https://agmet.kr/"],
+        ["용인시 농업기술센터", "https://www.yongin.go.kr/atc/index.do"],
+        [
+          "농산물유통정보 KAMIS",
+          "https://www.kamis.or.kr/customer/main/main.do",
+        ],
       ]) {
         const link = page.getByRole("link", {
           name: `${name} 열기 (새 탭)`,
@@ -54,6 +59,32 @@ for (const mobile of [false, true]) {
         .click();
       await expect(page.locator(".info-card")).toHaveCount(3);
       await page.getByRole("button", { name: "전체", exact: true }).click();
+      await page
+        .getByRole("button", { name: "가격·판매", exact: true })
+        .click();
+      await expect(page.locator(".info-card")).toHaveCount(1);
+      await expect(
+        page.getByRole("heading", {
+          name: "농산물유통정보 KAMIS",
+          exact: true,
+        }),
+      ).toBeVisible();
+      await page
+        .getByRole("button", { name: "지역·교육", exact: true })
+        .click();
+      await expect(
+        page.getByRole("heading", { name: "용인시 농업기술센터", exact: true }),
+      ).toBeVisible();
+      await page.getByRole("button", { name: "전체", exact: true }).click();
+      await page
+        .getByRole("searchbox", { name: "영농정보 찾기" })
+        .fill("농산물 가격");
+      await expect(
+        page.getByRole("heading", {
+          name: "농산물유통정보 KAMIS",
+          exact: true,
+        }),
+      ).toBeVisible();
       await page.getByRole("searchbox", { name: "영농정보 찾기" }).fill("토양");
       await expect(page.locator(".info-card")).toHaveCount(1);
       await expect(

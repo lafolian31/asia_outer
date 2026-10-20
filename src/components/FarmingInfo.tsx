@@ -6,6 +6,8 @@ import {
   ShieldAlert,
   ExternalLink,
   Search,
+  MapPin,
+  ChartNoAxesCombined,
 } from "lucide-react";
 const sites = [
   {
@@ -59,6 +61,29 @@ const sites = [
       "서비스의 지원 지역과 작물을 확인하고 농장 위치를 설정하세요. 맞춤 기능은 가입이나 농장 등록이 필요할 수 있어요.",
     tags: ["병해충·방제", "시설·재해 대비"],
   },
+  {
+    name: "용인시 농업기술센터",
+    agency: "용인특례시",
+    url: "https://www.yongin.go.kr/atc/index.do",
+    icon: MapPin,
+    description: "용인 지역 농업교육, 공지사항과 농업기술 지원 정보를 찾아요.",
+    use: "지역 교육·행사 확인·영농 상담과 지원 안내",
+    steps:
+      "공지사항과 교육 안내에서 모집 일정·신청 방법·대상을 확인하세요. 영농 상담과 지원 서비스는 센터의 담당 부서 안내를 참고하세요.",
+    tags: ["지역·교육"],
+  },
+  {
+    name: "농산물유통정보 KAMIS",
+    agency: "한국농수산식품유통공사(aT)",
+    url: "https://www.kamis.or.kr/customer/main/main.do",
+    icon: ChartNoAxesCombined,
+    description:
+      "농산물 가격을 품목별로 찾아보고, 도매·소매 가격과 추이를 확인해요.",
+    use: "수확물 판매·나눔 준비·농산물 시세 비교",
+    steps:
+      "도매·소매 구분과 품목·품종·등급·지역·조회일·단위를 맞춰 비교하세요. 조사 가격은 실제 농장 판매가격과 다를 수 있어요.",
+    tags: ["가격·판매", "수확"],
+  },
 ];
 const topics = [
   "전체",
@@ -67,6 +92,8 @@ const topics = [
   "병해충·방제",
   "수확",
   "시설·재해 대비",
+  "지역·교육",
+  "가격·판매",
 ];
 export function FarmingInfo() {
   const [topic, setTopic] = useState("전체");
@@ -86,7 +113,7 @@ export function FarmingInfo() {
           <input
             type="search"
             aria-label="영농정보 찾기"
-            placeholder="날씨, 토양, 작물, 병해충 등 찾기"
+            placeholder="날씨, 토양, 교육, 농산물 가격 등 찾기"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
