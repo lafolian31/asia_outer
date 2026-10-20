@@ -1,9 +1,9 @@
-// Exact parcel coordinates must be confirmed before enabling requests.
+// Coordinates confirmed from the Naver Map link supplied by the farm owner.
 export const farmWeatherLocation = {
   name: "안녕동 10-36",
-  address: "경기도 화성시 안녕동 10-36",
-  latitude: null,
-  longitude: null,
+  address: "경기도 화성시 병점구 안녕동 10-36",
+  latitude: 37.2040072,
+  longitude: 127.0192951,
 };
 export function weatherUrl(location) {
   if (

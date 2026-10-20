@@ -13,6 +13,13 @@ async function login(page: Page) {
   ).toBeVisible();
 }
 test("좌표 미확인 시 실제 수치·요청 없이 위치 안내", async ({ page }) => {
+  await page.route("**/src/lib/weather.js*", async (route) => {
+    const response = await route.fetch();
+    const source = (await response.text())
+      .replace("latitude: 37.2040072", "latitude: null")
+      .replace("longitude: 127.0192951", "longitude: null");
+    await route.fulfill({ response, body: source });
+  });
   let requests = 0;
   await page.route("https://api.open-meteo.com/**", async (route) => {
     requests++;
@@ -35,18 +42,13 @@ for (const mobile of [false, true]) {
     });
     try {
       const page = await ctx.newPage();
-      // Test-only coordinates: never write unverified parcel coordinates to production.
-      await page.route("**/src/lib/weather.js", async (route) => {
-        const response = await route.fetch();
-        const source = (await response.text())
-          .replace("latitude: null", "latitude: 37.2")
-          .replace("longitude: null", "longitude: 127.0");
-        await route.fulfill({ response, body: source });
-      });
       let requests = 0;
       let fail = false;
       await page.route("https://api.open-meteo.com/**", async (route) => {
         requests++;
+        const requested = new URL(route.request().url());
+        expect(requested.searchParams.get("latitude")).toBe("37.2040072");
+        expect(requested.searchParams.get("longitude")).toBe("127.0192951");
         if (fail) {
           await route.fulfill({ status: 503, body: "Unavailable" });
           return;
