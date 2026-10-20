@@ -1,6 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { csv, canEdit, planStats, safeUrl, today } from "../src/lib/utils.js";
+import {
+  csv,
+  canEdit,
+  planStats,
+  safeUrl,
+  today,
+  matchesSearch,
+  searchDateForms,
+} from "../src/lib/utils.js";
 test("본인·관리자·열람자 권한 구분", () => {
   const e = { author_id: "A" };
   assert.ok(canEdit({ user_id: "A", role: "editor", active: true }, e));
@@ -40,4 +48,34 @@ test("위험한 링크 차단", () => {
 });
 test("날짜는 서울 기준 ISO 일자", () => {
   assert.match(today(), /^\d{4}-\d{2}-\d{2}$/);
+});
+
+test("통합 찾기는 여러 필드·공백·대소문자·한글 정규화와 날짜 표기를 지원", () => {
+  const fields = [
+    "들깨 · 제초",
+    "농장 관리자",
+    "안녕동",
+    "잡초·병해충",
+    "2027 봄 계획",
+    "작업사진.JPG",
+    ...searchDateForms("2026-10-20"),
+  ];
+  for (const query of [
+    "",
+    "   ",
+    "들깨 관리자",
+    "농장관리자",
+    "안녕동 제초",
+    "작업사진.jpg",
+    "2026/10/20 계획",
+    "2026.10.20",
+    "20261020",
+    "2026년 10월20일",
+    "제초  안녕동   들깨",
+  ])
+    assert.ok(matchesSearch(query, fields), query);
+  for (const query of ["들깨 없는작성자", "2026-10-19", "수확"])
+    assert.equal(matchesSearch(query, fields), false, query);
+  assert.ok(matchesSearch("한글", ["한글"]));
+  assert.deepEqual(searchDateForms(null), []);
 });

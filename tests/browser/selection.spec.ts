@@ -86,20 +86,27 @@ test("모바일 빠른 선택·작물 등록·자동 제목·다중 사진·필�
     await dialog.getByRole("button", { name: "저장하기", exact: true }).click();
     await expect(dialog).toBeHidden();
     await nav(page, "농작업일지");
-    await page.getByLabel("작물 필터", { exact: true }).selectOption(crop);
-    await page
-      .getByLabel("작업 장소 필터", { exact: true })
-      .selectOption(firstZone!);
-    await page
-      .getByLabel("대분류 필터", { exact: true })
-      .selectOption("잡초·병해충");
-    await page
-      .getByLabel("세부작업 필터", { exact: true })
-      .selectOption("제초");
+    await expect(page.locator(".filters select")).toHaveCount(0);
+    await expect(page.locator(".filters input[type=date]")).toHaveCount(0);
+    const search = page.getByLabel("검색어");
+    await search.fill(`${crop} ${firstZone} 제초`);
     await expect(
       page.getByRole("heading", { name: crop + " · 제초", exact: true }),
     ).toBeVisible();
     await expect(page.locator(".record-thumbnail img")).toBeVisible();
+    await search.fill(`${crop} 작업1.jpg`);
+    await expect(
+      page.getByRole("heading", { name: crop + " · 제초", exact: true }),
+    ).toBeVisible();
+    await search.fill(`${crop} [시험] a`);
+    await expect(
+      page.getByRole("heading", { name: crop + " · 제초", exact: true }),
+    ).toBeVisible();
+    await search.fill(`${crop} 없는작성자`);
+    await expect(
+      page.getByRole("heading", { name: crop + " · 제초", exact: true }),
+    ).toHaveCount(0);
+    await search.fill(crop);
     await openCard(page, crop + " · 제초");
     await expect(
       dialog.getByText("작업량 2.5 두둑", { exact: true }),
@@ -176,9 +183,7 @@ test("사진부터 기록 후 분류·메모 보완, 기존 분류 미지정 일
     dialog.getByText("[검수용] 나중에 메모 보완", { exact: true }),
   ).toBeVisible();
   await dialog.getByRole("button", { name: "닫기", exact: true }).click();
-  await page
-    .getByLabel("대분류 필터", { exact: true })
-    .selectOption("__legacy");
+  await page.getByLabel("검색어").fill("분류 미지정");
   await expect(
     page.getByRole("heading", { name: fixtures.log.title, exact: true }),
   ).toBeVisible();
@@ -227,6 +232,7 @@ test("계획에서 농작업·운영 기록 작성, 메뉴 분리와 계획의 �
   expect(linked[1]).toContain(farmTitle);
   await dialog.getByRole("button", { name: "닫기", exact: true }).click();
   await nav(page, "농작업일지");
+  await page.getByLabel("검색어").fill(`${planTitle} 2026/10/18 관수`);
   await expect(
     page.getByRole("heading", { name: farmTitle, exact: true }),
   ).toBeVisible();

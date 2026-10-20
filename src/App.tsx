@@ -20,13 +20,20 @@ import {
   Camera,
 } from "lucide-react";
 import { configured, db, snapshot, exportCsv } from "./lib/api";
-import { planStats, readableError, roleLabels, today } from "./lib/utils.js";
+import {
+  planStats,
+  readableError,
+  roleLabels,
+  today,
+  matchesSearch,
+  searchDateForms,
+} from "./lib/utils.js";
 import type { Entry, Kind, Member, Snapshot } from "./lib/types";
 import { Auth, Join } from "./components/Auth";
 import { Editor } from "./components/Editor";
 import { Detail } from "./components/Detail";
 import { Admin } from "./components/Admin";
-import { isActivity, workGroupNames } from "./lib/work";
+import { isActivity } from "./lib/work";
 import { Thumbnail } from "./components/Thumbnail";
 import { Password } from "./components/Password";
 const navigation = [
@@ -63,10 +70,6 @@ export default function App() {
     [month, setMonth] = useState(""),
     [planStatus, setPlanStatus] = useState(""),
     [category, setCategory] = useState(""),
-    [crop, setCrop] = useState(""),
-    [zone, setZone] = useState(""),
-    [workGroup, setWorkGroup] = useState(""),
-    [workTask, setWorkTask] = useState(""),
     [activityCategory, setActivityCategory] = useState("");
   const me = s?.members.find((m) => m.user_id === session?.user.id && m.active);
   const writable = !!me && me.role !== "viewer";
@@ -165,10 +168,6 @@ export default function App() {
     setAuthor("");
     setMonth("");
     setPlanStatus("");
-    setCrop("");
-    setZone("");
-    setWorkGroup("");
-    setWorkTask("");
     setActivityCategory("");
   }
   function openCurrentPlans(status = "") {
@@ -271,28 +270,49 @@ export default function App() {
         : e.kind === page && (page !== "log" || !isActivity(e)),
     )
     .filter((e) =>
-      (
-        e.title +
-        " " +
-        e.body +
-        " " +
-        e.result +
-        " " +
-        e.zone +
-        " " +
-        e.crop +
-        " " +
-        (e.work_task || "") +
-        " " +
-        (e.work_group || "")
-      )
-        .toLowerCase()
-        .includes(query.toLowerCase()),
+      page === "log"
+        ? matchesSearch(query, [
+            e.title,
+            e.body,
+            e.result,
+            e.crop,
+            e.zone,
+            e.work_group,
+            e.work_task,
+            name(e.author_id),
+            ...(e.participant_ids || []).map(name),
+            ...searchDateForms(e.work_date),
+            e.quantity == null ? "" : `${e.quantity} ${e.quantity_unit || ""}`,
+            !e.work_group ? "분류 미지정" : "",
+            e.plan_id
+              ? plans.find((p) => p.id === e.plan_id)?.title || ""
+              : "계획 외 작업",
+            ...s.assets
+              .filter((a) => a.entry_id === e.id && a.ready)
+              .map((a) => a.name),
+          ])
+        : (
+            e.title +
+            " " +
+            e.body +
+            " " +
+            e.result +
+            " " +
+            e.zone +
+            " " +
+            e.crop +
+            " " +
+            (e.work_task || "") +
+            " " +
+            (e.work_group || "")
+          )
+            .toLowerCase()
+            .includes(query.toLowerCase()),
     )
-    .filter((e) => !author || e.author_id === author)
+    .filter((e) => page === "log" || !author || e.author_id === author)
     .filter(
       (e) =>
-        !["log", "activity"].includes(page) ||
+        page !== "activity" ||
         ((!from || e.work_date! >= from) &&
           (!to || e.work_date! <= to) &&
           (!plan || (plan === "none" ? !e.plan_id : e.plan_id === plan))),
@@ -306,14 +326,6 @@ export default function App() {
               e.end_date! >= `${year}-${month}-01`))),
     )
     .filter((e) => !category || e.category === category)
-    .filter((e) => !crop || e.crop === crop)
-    .filter((e) => !zone || e.zone === zone)
-    .filter(
-      (e) =>
-        !workGroup ||
-        (workGroup === "__legacy" ? !e.work_group : e.work_group === workGroup),
-    )
-    .filter((e) => !workTask || e.work_task === workTask)
     .filter(
       (e) => !activityCategory || e.activity_category === activityCategory,
     )
@@ -781,7 +793,12 @@ export default function App() {
                     <Search size={18} />
                     <input
                       aria-label="검색어"
-                      placeholder="제목, 내용, 구역, 작물 검색"
+                      type={page === "log" ? "search" : "text"}
+                      placeholder={
+                        page === "log"
+                          ? "제목·작성자·작물·장소·작업·날짜 찾기"
+                          : "제목, 내용, 구역, 작물 검색"
+                      }
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                     />
@@ -832,7 +849,7 @@ export default function App() {
                       </label>
                     </>
                   )}
-                  {["log", "activity"].includes(page) && (
+                  {page === "activity" && (
                     <>
                       <label>
                         시작일
@@ -863,103 +880,6 @@ export default function App() {
                               {p.target_year} · {p.title}
                             </option>
                           ))}
-                        </select>
-                      </label>
-                    </>
-                  )}
-                  {page === "log" && (
-                    <>
-                      <label>
-                        작물
-                        <select
-                          aria-label="작물 필터"
-                          value={crop}
-                          onChange={(e) => setCrop(e.target.value)}
-                        >
-                          <option value="">전체 작물</option>
-                          {Array.from(
-                            new Set([
-                              ...s.settings.crops,
-                              ...logs.map((e) => e.crop),
-                            ]),
-                          )
-                            .filter(Boolean)
-                            .map((c) => (
-                              <option key={c}>{c}</option>
-                            ))}
-                        </select>
-                      </label>
-                      <label>
-                        작업 장소
-                        <select
-                          aria-label="작업 장소 필터"
-                          value={zone}
-                          onChange={(e) => setZone(e.target.value)}
-                        >
-                          <option value="">전체 장소</option>
-                          {Array.from(
-                            new Set([
-                              ...s.settings.zones,
-                              ...logs.map((e) => e.zone),
-                            ]),
-                          )
-                            .filter(Boolean)
-                            .map((z) => (
-                              <option key={z}>{z}</option>
-                            ))}
-                        </select>
-                      </label>
-                      <label>
-                        대분류
-                        <select
-                          aria-label="대분류 필터"
-                          value={workGroup}
-                          onChange={(e) => {
-                            setWorkGroup(e.target.value);
-                            setWorkTask("");
-                          }}
-                        >
-                          <option value="">전체 작업</option>
-                          <option value="__legacy">분류 미지정</option>
-                          {Array.from(
-                            new Set([
-                              ...workGroupNames(s.settings.work_catalog || {}),
-                              ...logs.map((e) => e.work_group || ""),
-                            ]),
-                          )
-                            .filter(Boolean)
-                            .map((g) => (
-                              <option key={g}>{g}</option>
-                            ))}
-                        </select>
-                      </label>
-                      <label>
-                        세부작업
-                        <select
-                          aria-label="세부작업 필터"
-                          value={workTask}
-                          onChange={(e) => setWorkTask(e.target.value)}
-                        >
-                          <option value="">전체 세부작업</option>
-                          {Array.from(
-                            new Set([
-                              ...(workGroup
-                                ? s.settings.work_catalog?.[workGroup] || []
-                                : Object.values(
-                                    s.settings.work_catalog || {},
-                                  ).flat()),
-                              ...logs
-                                .filter(
-                                  (e) =>
-                                    !workGroup || e.work_group === workGroup,
-                                )
-                                .map((e) => e.work_task || ""),
-                            ]),
-                          )
-                            .filter(Boolean)
-                            .map((t) => (
-                              <option key={t}>{t}</option>
-                            ))}
                         </select>
                       </label>
                     </>
@@ -1008,20 +928,22 @@ export default function App() {
                       </select>
                     </label>
                   )}
-                  <label>
-                    작성자
-                    <select
-                      value={author}
-                      onChange={(e) => setAuthor(e.target.value)}
-                    >
-                      <option value="">전체 작성자</option>
-                      {s.members.map((m) => (
-                        <option key={m.user_id} value={m.user_id}>
-                          {m.display_name}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                  {page !== "log" && (
+                    <label>
+                      작성자
+                      <select
+                        value={author}
+                        onChange={(e) => setAuthor(e.target.value)}
+                      >
+                        <option value="">전체 작성자</option>
+                        {s.members.map((m) => (
+                          <option key={m.user_id} value={m.user_id}>
+                            {m.display_name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
                   <button
                     className="text-button"
                     onClick={() =>
@@ -1130,10 +1052,6 @@ export default function App() {
                       plan ||
                       category ||
                       planStatus ||
-                      crop ||
-                      zone ||
-                      workGroup ||
-                      workTask ||
                       activityCategory
                         ? "조건에 맞는 기록이 없습니다"
                         : "아직 기록이 없습니다"

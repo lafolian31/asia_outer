@@ -71,3 +71,31 @@ export function download(blob, name) {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
+
+// Multiple words can match different fields of the same record.
+export function matchesSearch(query, fields) {
+  const normalize = (value) =>
+    String(value ?? "")
+      .normalize("NFKC")
+      .toLocaleLowerCase("ko-KR")
+      .replace(/\s+/g, "");
+  const terms = String(query ?? "")
+    .normalize("NFKC")
+    .trim()
+    .split(/\s+/u)
+    .filter(Boolean)
+    .map(normalize);
+  const values = fields.map(normalize);
+  return terms.every((term) => values.some((value) => value.includes(term)));
+}
+export function searchDateForms(date) {
+  if (!date) return [];
+  const [year, month, day] = date.split("-");
+  return [
+    date,
+    date.replaceAll("-", "."),
+    date.replaceAll("-", "/"),
+    date.replaceAll("-", ""),
+    `${year}년${Number(month)}월${Number(day)}일`,
+  ];
+}
