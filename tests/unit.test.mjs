@@ -150,3 +150,67 @@ test("계획은 진행 중·오늘·가까운 미래순, 지난 일정은 뒤에
   assert.ok(comparePlanDates(records[2], records[0], "2026-10-23") > 0);
   assert.equal(comparePlanDates(records[0], records[0], "2026-10-20"), 0);
 });
+
+test("날씨는 확인된 좌표만 사용하고 시간·단위·일조 환산을 검증", async () => {
+  const { weatherUrl, parseWeather, windDirection } = await import(
+    "../src/lib/weather.js"
+  );
+  assert.equal(weatherUrl({ latitude: null, longitude: null }), null);
+  assert.equal(weatherUrl({ latitude: 91, longitude: 127 }), null);
+  const params = new URL(weatherUrl({ latitude: 37.2, longitude: 127 }))
+    .searchParams;
+  assert.equal(params.get("wind_speed_unit"), "ms");
+  assert.equal(params.get("timezone"), "Asia/Seoul");
+  const body = {
+    current: {
+      time: "2026-10-20T13:15",
+      temperature_2m: 21.5,
+      relative_humidity_2m: 65,
+      wind_speed_10m: 2.3,
+      wind_direction_10m: 90,
+    },
+    current_units: {
+      temperature_2m: "°C",
+      relative_humidity_2m: "%",
+      wind_speed_10m: "m/s",
+    },
+    hourly: { time: ["2026-10-20T13:00"], sunshine_duration: [1800] },
+    hourly_units: { sunshine_duration: "s" },
+  };
+  assert.deepEqual(parseWeather(body), {
+    time: "2026-10-20T13:15",
+    temperature: 21.5,
+    humidity: 65,
+    wind: 2.3,
+    direction: 90,
+    sunshine: 30,
+    sunshineTime: "2026-10-20T13:00",
+  });
+  assert.equal(windDirection(90), "동");
+  assert.equal(windDirection(360), "북");
+  assert.equal(
+    parseWeather({ ...body, hourly: { time: [], sunshine_duration: [] } })
+      .sunshine,
+    null,
+  );
+  assert.equal(
+    parseWeather({
+      ...body,
+      current: {
+        ...body.current,
+        temperature_2m: null,
+        relative_humidity_2m: 101,
+      },
+    }).humidity,
+    null,
+  );
+  assert.equal(
+    parseWeather({
+      ...body,
+      hourly: { time: body.hourly.time, sunshine_duration: [null] },
+    }).sunshine,
+    null,
+  );
+  assert.throws(() => parseWeather({ ...body, current_units: {} }), /단위/);
+  assert.throws(() => parseWeather({}), /기준 시각/);
+});

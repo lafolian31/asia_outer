@@ -2154,3 +2154,81 @@ textarea::placeholder {
     flex: 1 0 56px;
   }
 }
+
+.home-heading > div:first-child {
+  flex: 1;
+  min-width: 0;
+}
+.farm-weather {
+  width: 360px;
+  flex: 0 0 360px;
+  padding: 16px 18px;
+  border: 1px solid #e1e7dc;
+  border-radius: 14px;
+  background: #fff;
+}
+.weather-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 14px;
+}
+.weather-title .icon-button {
+  padding: 4px;
+  min-height: 28px;
+}
+.weather-values {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 12px 0;
+}
+.weather-values dt {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #6a7b69;
+}
+.weather-values dd {
+  margin: 6px 0 0;
+  font-weight: 700;
+  font-size: 17px;
+  white-space: nowrap;
+}
+.weather-values dd small {
+  display: block;
+  min-height: 16px;
+  font-size: 10px;
+  font-weight: 400;
+  color: #6a7b69;
+}
+.page-heading .farm-weather .weather-message,
+.page-heading .farm-weather .weather-error {
+  font-size: 10px;
+  line-height: 1.7;
+  margin: 6px 0;
+  max-width: none;
+}
+.page-heading .farm-weather .weather-error {
+  color: #a34725;
+}
+.weather-source {
+  font-size: 10px;
+  color: #6a7b69;
+}
+.weather-source a {
+  color: inherit;
+}
+@media (max-width: 1100px) {
+  .home-heading {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .farm-weather {
+    flex: auto;
+    width: 100%;
+    max-width: 500px;
+  }
+}

@@ -45,6 +45,7 @@ import {
   hasPlan,
 } from "./lib/work";
 import { Thumbnail } from "./components/Thumbnail";
+import { FarmWeather } from "./components/FarmWeather";
 import { FarmingInfo } from "./components/FarmingInfo";
 import { Password } from "./components/Password";
 const navigation = [
@@ -533,7 +534,9 @@ export default function App() {
               {error} · 현재 목록은 최신 상태가 아닐 수 있습니다.
             </p>
           )}
-          <div className="page-heading">
+          <div
+            className={`page-heading${page === "home" ? " home-heading" : ""}`}
+          >
             <div>
               <span className="eyebrow">
                 {page === "home"
@@ -563,6 +566,7 @@ export default function App() {
                             : "우리 농장과 참여자, 소중한 기록을 관리하세요."}
               </p>
             </div>
+            {page === "home" && <FarmWeather />}
             {writable &&
               ["plan", "log", "activity", "resource"].includes(page) && (
                 <button
