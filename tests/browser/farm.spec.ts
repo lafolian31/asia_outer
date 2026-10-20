@@ -19,6 +19,7 @@ async function login(page: Page, who: string) {
     await expect(
       page.getByRole("heading", { name: "농장의 오늘을 살펴보세요" }),
     ).toBeVisible();
+  if (who !== "outside") await nav(page, "농작업일지");
 }
 async function nav(page: Page, name: string) {
   if (name === "농장 관리") {

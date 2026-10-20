@@ -1984,3 +1984,16 @@ textarea::placeholder {
     overflow-x: auto;
   }
 }
+
+.quick-record-tools {
+  margin-bottom: 20px;
+}
+.quick-record-tools > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.quick-record-tools .quick-record {
+  margin: 16px 0 0;
+  padding: 16px;
+  border-radius: 10px;
+}

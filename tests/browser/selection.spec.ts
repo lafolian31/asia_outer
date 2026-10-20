@@ -15,6 +15,11 @@ async function login(page: Page, who = "a") {
   await expect(
     page.getByRole("heading", { name: "농장의 오늘을 살펴보세요" }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "농작업 기록하기", exact: true }),
+  ).toHaveCount(0);
+  await expect(page.locator(".quick-record")).toHaveCount(0);
+  await nav(page, "농작업일지");
 }
 async function nav(page: Page, name: string) {
   await page.locator("nav").getByRole("button", { name }).click();
@@ -103,7 +108,7 @@ test("모바일 빠른 선택·작물 등록·자동 제목·다중 사진·필�
     await dialog.getByLabel("제목", { exact: true }).fill(copied);
     await dialog.getByRole("button", { name: "저장하기", exact: true }).click();
     await expect(dialog).toBeHidden();
-    await nav(page, "홈");
+    await nav(page, "농작업일지");
     await page
       .getByRole("button", { name: "농작업 기록하기", exact: true })
       .click();
@@ -134,6 +139,7 @@ test("사진부터 기록 후 분류·메모 보완, 기존 분류 미지정 일
   const picture = await page.screenshot({
     clip: { x: 0, y: 0, width: 100, height: 100 },
   });
+  await page.getByText("빠른 기록 도구", { exact: true }).click();
   const chooser = page.waitForEvent("filechooser");
   await page
     .getByRole("button", { name: "사진부터 기록", exact: true })
@@ -258,7 +264,7 @@ test("관리자 세부작업 추가·수정, 기존 기록 유지와 열람자 �
     await expect(
       page.getByText("농작업 선택 목록을 저장했습니다.", { exact: true }),
     ).toBeVisible();
-    await nav(page, "홈");
+    await nav(page, "농작업일지");
     await page
       .getByRole("button", { name: "농작업 기록하기", exact: true })
       .click();

@@ -523,7 +523,7 @@ export default function App() {
                           : "우리 농장과 참여자, 소중한 기록을 관리하세요."}
               </p>
             </div>
-            {writable && page !== "admin" && (
+            {writable && page !== "admin" && page !== "home" && (
               <button
                 className="primary record-primary"
                 disabled={page === "activity" && !s.settings.work_catalog}
@@ -583,9 +583,10 @@ export default function App() {
               기존 일지는 계속 조회·작성할 수 있습니다.
             </p>
           )}
-          {page === "home" ? (
-            <>
-              <section className="quick-record panel">
+          {page === "log" && writable && (
+            <details className="quick-record-tools panel">
+              <summary>빠른 기록 도구</summary>
+              <div className="quick-record">
                 <div>
                   <span className="eyebrow">오늘의 기록, 간단하게</span>
                   <h2>작업을 고르거나 사진부터 남겨 보세요</h2>
@@ -641,7 +642,11 @@ export default function App() {
                     </div>
                   </div>
                 )}
-              </section>
+              </div>
+            </details>
+          )}
+          {page === "home" ? (
+            <>
               <section className="stats-grid">
                 <Stat
                   label="올해 계획"
@@ -693,9 +698,6 @@ export default function App() {
                     <Empty
                       title="첫 번째 농작업일지를 남겨 보세요"
                       description="오늘 한 일과 사진이 우리 농장의 기록이 됩니다."
-                      action={
-                        writable ? () => setEditor({ kind: "log" }) : undefined
-                      }
                     />
                   )}
                 </section>
