@@ -34,7 +34,8 @@ const navigation = [
   { id: "plan", name: "농장계획", icon: CalendarDays },
   { id: "log", name: "농작업일지", icon: BookOpen },
   { id: "activity", name: "운영·교류", icon: Users },
-  { id: "resource", name: "자료함 및 관리", icon: FolderOpen },
+  { id: "resource", name: "자료함", icon: FolderOpen },
+  { id: "admin", name: "농장 관리", icon: Settings },
 ];
 export default function App() {
   const [passwordOpen, setPasswordOpen] = useState(false);
@@ -402,21 +403,19 @@ export default function App() {
         </div>
         <div className="nav-caption">농장 공간</div>
         <nav>
-          {navigation.map((n) => (
-            <button
-              key={n.id}
-              className={
-                page === n.id || (page === "admin" && n.id === "resource")
-                  ? "active"
-                  : ""
-              }
-              onClick={() => navigate(n.id)}
-            >
-              <n.icon size={20} />
-              <span>{n.name}</span>
-              {n.id === "log" && <small>{logs.length}</small>}
-            </button>
-          ))}
+          {navigation
+            .filter((n) => n.id !== "admin" || me.role === "admin")
+            .map((n) => (
+              <button
+                key={n.id}
+                className={page === n.id ? "active" : ""}
+                onClick={() => navigate(n.id)}
+              >
+                <n.icon size={20} />
+                <span>{n.name}</span>
+                {n.id === "log" && <small>{logs.length}</small>}
+              </button>
+            ))}
         </nav>
         <div className="sidebar-bottom">
           <div className="free-note">
@@ -551,27 +550,6 @@ export default function App() {
               </button>
             )}
           </div>
-          {page === "resource" && (
-            <div className="resource-tools">
-              <button
-                className="text-button"
-                onClick={() => navigate("resource")}
-              >
-                자료 보기
-              </button>
-              {me.role === "admin" && (
-                <button onClick={() => navigate("admin")}>농장 관리</button>
-              )}
-            </div>
-          )}
-          {page === "admin" && (
-            <button
-              className="text-button"
-              onClick={() => navigate("resource")}
-            >
-              자료함으로 돌아가기
-            </button>
-          )}
           {page === "activity" && !s.settings.work_catalog && (
             <p className="alert">
               운영·교류 기록을 사용하려면 데이터베이스 업데이트가 필요합니다.

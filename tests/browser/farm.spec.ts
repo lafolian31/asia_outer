@@ -22,14 +22,6 @@ async function login(page: Page, who: string) {
   if (who !== "outside") await nav(page, "농작업일지");
 }
 async function nav(page: Page, name: string) {
-  if (name === "농장 관리") {
-    await page
-      .locator("nav")
-      .getByRole("button", { name: "자료함 및 관리" })
-      .click();
-    await page.getByRole("button", { name: "농장 관리", exact: true }).click();
-    return;
-  }
   await page.locator("nav").getByRole("button", { name, exact: false }).click();
 }
 const unique = "[브라우저 시험] " + Date.now();
@@ -233,7 +225,7 @@ test("관리자 수정·휴지통 복원·CSV·파일 포함 백업", async ({ p
 });
 test("자료 업로드·검색·다운로드", async ({ page }) => {
   await login(page, "a");
-  await nav(page, "자료함 및 관리");
+  await nav(page, "자료함");
   await page.getByRole("button", { name: "자료 올리기" }).click();
   await page.getByLabel("제목").fill(unique + " 공유 문서");
   await page.getByLabel("자료 설명").fill("한국어 문서 다운로드 확인");
@@ -355,7 +347,7 @@ test("관리자가 분류를 추가하고 다른 계정이 선택·검색, 목�
     admin.getByText("자료함 분류를 저장했습니다.", { exact: true }),
   ).toBeVisible();
   await login(member, "a");
-  await nav(member, "자료함 및 관리");
+  await nav(member, "자료함");
   await member
     .getByRole("button", { name: "자료 올리기", exact: true })
     .click();
@@ -367,7 +359,7 @@ test("관리자가 분류를 추가하고 다른 계정이 선택·검색, 목�
   await editor.getByRole("button", { name: "저장하기" }).click();
   await expect(editor).toBeHidden();
   await member.reload();
-  await nav(member, "자료함 및 관리");
+  await nav(member, "자료함");
   await member
     .getByLabel("자료 분류", { exact: true })
     .selectOption(categoryName);
@@ -380,7 +372,7 @@ test("관리자가 분류를 추가하고 다른 계정이 선택·검색, 목�
     admin.getByRole("button", { name: "분류 저장", exact: true }),
   ).toBeEnabled();
   await member.reload();
-  await nav(member, "자료함 및 관리");
+  await nav(member, "자료함");
   await member
     .getByLabel("자료 분류", { exact: true })
     .selectOption(categoryName);

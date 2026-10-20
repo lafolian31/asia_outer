@@ -19,6 +19,12 @@ async function login(page: Page, who = "a") {
     page.getByRole("button", { name: "농작업 기록하기", exact: true }),
   ).toHaveCount(0);
   await expect(page.locator(".quick-record")).toHaveCount(0);
+  await expect(
+    page.locator("nav").getByRole("button", { name: "자료함", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.locator("nav").getByRole("button", { name: "농장 관리", exact: true }),
+  ).toHaveCount(who === "admin" ? 1 : 0);
   await nav(page, "농작업일지");
 }
 async function nav(page: Page, name: string) {
@@ -246,8 +252,7 @@ test("관리자 세부작업 추가·수정, 기존 기록 유지와 열람자 �
   const page = await ctx.newPage();
   try {
     await login(page, "admin");
-    await nav(page, "자료함 및 관리");
-    await page.getByRole("button", { name: "농장 관리", exact: true }).click();
+    await nav(page, "농장 관리");
     await page
       .getByLabel("관리할 대분류", { exact: true })
       .selectOption("관찰·점검");
@@ -277,8 +282,7 @@ test("관리자 세부작업 추가·수정, 기존 기록 유지와 열람자 �
     ).toBeVisible();
     page.once("dialog", (d) => d.accept());
     await page.getByRole("button", { name: "닫기", exact: true }).click();
-    await nav(page, "자료함 및 관리");
-    await page.getByRole("button", { name: "농장 관리", exact: true }).click();
+    await nav(page, "농장 관리");
     await page
       .getByLabel("관리할 대분류", { exact: true })
       .selectOption("관찰·점검");

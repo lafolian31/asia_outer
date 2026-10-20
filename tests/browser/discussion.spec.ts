@@ -32,7 +32,7 @@ async function open(page: Page, entry: { kind: string; title: string }) {
   await page
     .locator("nav")
     .getByRole("button", {
-      name: entry.kind === "log" ? "농작업일지" : "자료함 및 관리",
+      name: entry.kind === "log" ? "농작업일지" : "자료함",
     })
     .click();
   await page
@@ -48,7 +48,7 @@ async function open(page: Page, entry: { kind: string; title: string }) {
   ).toBeVisible();
 }
 
-test("일지·자료함 및 관리 댓글과 감정표현: PC·휴대전화 계정 공유, 본인 수정·삭제와 열람자 제한", async ({
+test("일지·자료함 댓글과 감정표현: PC·휴대전화 계정 공유, 본인 수정·삭제와 열람자 제한", async ({
   browser,
 }) => {
   const db = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
