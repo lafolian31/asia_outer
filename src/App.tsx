@@ -18,6 +18,7 @@ import {
   KeyRound,
   Users,
   Camera,
+  CloudSun,
 } from "lucide-react";
 import { configured, db, snapshot, exportCsv } from "./lib/api";
 import {
@@ -44,6 +45,7 @@ import {
   hasPlan,
 } from "./lib/work";
 import { Thumbnail } from "./components/Thumbnail";
+import { FarmingInfo } from "./components/FarmingInfo";
 import { Password } from "./components/Password";
 const navigation = [
   { id: "home", name: "홈", icon: LayoutDashboard },
@@ -51,6 +53,7 @@ const navigation = [
   { id: "log", name: "농작업일지", icon: BookOpen },
   { id: "activity", name: "운영·교류", icon: Users },
   { id: "resource", name: "자료함", icon: FolderOpen },
+  { id: "info", name: "영농정보", icon: CloudSun },
   { id: "admin", name: "농장 관리", icon: Settings },
 ];
 export default function App() {
@@ -555,36 +558,39 @@ export default function App() {
                         ? "한 해의 계획이 어떻게 자라고 있는지 확인하세요."
                         : page === "resource"
                           ? "함께 참고할 문서, 사진, 링크를 한곳에 모아요."
-                          : "우리 농장과 참여자, 소중한 기록을 관리하세요."}
+                          : page === "info"
+                            ? "농사에 필요한 날씨·토양·재배기술·재해 정보를 찾아보세요."
+                            : "우리 농장과 참여자, 소중한 기록을 관리하세요."}
               </p>
             </div>
-            {writable && page !== "admin" && page !== "home" && (
-              <button
-                className="primary record-primary"
-                disabled={page === "activity" && !s.settings.work_catalog}
-                onClick={() =>
-                  setEditor({
-                    kind:
-                      page === "home" || page === "activity"
-                        ? "log"
-                        : (page as Kind),
-                    initial:
-                      page === "activity"
-                        ? { record_type: "activity" }
-                        : undefined,
-                  })
-                }
-              >
-                <Plus size={19} />
-                {page === "plan"
-                  ? "계획 세우기"
-                  : page === "resource"
-                    ? "자료 올리기"
-                    : page === "activity"
-                      ? "활동 기록하기"
-                      : "농작업 기록하기"}
-              </button>
-            )}
+            {writable &&
+              ["plan", "log", "activity", "resource"].includes(page) && (
+                <button
+                  className="primary record-primary"
+                  disabled={page === "activity" && !s.settings.work_catalog}
+                  onClick={() =>
+                    setEditor({
+                      kind:
+                        page === "home" || page === "activity"
+                          ? "log"
+                          : (page as Kind),
+                      initial:
+                        page === "activity"
+                          ? { record_type: "activity" }
+                          : undefined,
+                    })
+                  }
+                >
+                  <Plus size={19} />
+                  {page === "plan"
+                    ? "계획 세우기"
+                    : page === "resource"
+                      ? "자료 올리기"
+                      : page === "activity"
+                        ? "활동 기록하기"
+                        : "농작업 기록하기"}
+                </button>
+              )}
           </div>
           {page === "activity" && !s.settings.work_catalog && (
             <p className="alert">
@@ -793,6 +799,8 @@ export default function App() {
                 </div>
               </div>
             </>
+          ) : page === "info" ? (
+            <FarmingInfo />
           ) : page === "admin" ? (
             <Admin s={s} refresh={refresh} notify={setNotice} />
           ) : (
