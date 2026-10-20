@@ -9,6 +9,7 @@
     "preview": "vite preview --host 0.0.0.0",
     "test": "node --test tests/unit.test.mjs",
     "test:integration": "node --env-file=.env.test --test tests/integration.mjs",
+    "test:multi": "node --env-file=.env.test --test tests/multi.integration.mjs",
     "test:selection": "node --env-file=.env.test --test tests/selection.integration.mjs",
     "test:discussion": "node --env-file=.env.test --test tests/discussion.integration.mjs",
     "test:e2e": "playwright test",

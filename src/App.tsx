@@ -33,7 +33,15 @@ import { Auth, Join } from "./components/Auth";
 import { Editor } from "./components/Editor";
 import { Detail } from "./components/Detail";
 import { Admin } from "./components/Admin";
-import { isActivity } from "./lib/work";
+import {
+  isActivity,
+  cropsOf,
+  zonesOf,
+  groupsOf,
+  tasksOf,
+  plansOf,
+  hasPlan,
+} from "./lib/work";
 import { Thumbnail } from "./components/Thumbnail";
 import { Password } from "./components/Password";
 const navigation = [
@@ -229,13 +237,14 @@ export default function App() {
   const activityLogs = active.filter(isActivity);
   const frequent = Object.values(
     logs
-      .filter((e) => e.author_id === me.user_id && e.work_task)
+      .filter((e) => e.author_id === me.user_id)
+      .flatMap((e) => tasksOf(e))
       .reduce(
         (items, e) => {
-          const key = `${e.work_group}:${e.work_task}`;
+          const key = `${e.group}:${e.task}`;
           items[key] = {
-            group: e.work_group || "",
-            task: e.work_task!,
+            group: e.group || "",
+            task: e.task,
             count: (items[key]?.count || 0) + 1,
           };
           return items;
@@ -275,18 +284,20 @@ export default function App() {
             e.title,
             e.body,
             e.result,
-            e.crop,
-            e.zone,
-            e.work_group,
-            e.work_task,
+            ...cropsOf(e),
+            ...zonesOf(e),
+            ...groupsOf(e),
+            ...tasksOf(e).map((w) => w.task),
             name(e.author_id),
             ...(e.participant_ids || []).map(name),
             ...searchDateForms(e.work_date),
             e.quantity == null ? "" : `${e.quantity} ${e.quantity_unit || ""}`,
-            !e.work_group ? "분류 미지정" : "",
-            e.plan_id
-              ? plans.find((p) => p.id === e.plan_id)?.title || ""
-              : "계획 외 작업",
+            !groupsOf(e).length ? "분류 미지정" : "",
+            ...(plansOf(e).length
+              ? plansOf(e).map(
+                  (id) => plans.find((p) => p.id === id)?.title || "",
+                )
+              : ["계획 외 작업"]),
             ...s.assets
               .filter((a) => a.entry_id === e.id && a.ready)
               .map((a) => a.name),
@@ -369,15 +380,25 @@ export default function App() {
         <h3>{e.title}</h3>
         <p>{e.body || "설명이 없습니다."}</p>
         <div className="record-tags">
-          {e.zone && <span>{e.zone}</span>}
-          {e.crop && <span>{e.crop}</span>}
-          {e.work_task && <span>{e.work_task}</span>}
+          {zonesOf(e).map((v) => (
+            <span key={`zone-${v}`}>{v}</span>
+          ))}
+          {cropsOf(e).map((v) => (
+            <span key={`crop-${v}`}>{v}</span>
+          ))}
+          {tasksOf(e).map((v) => (
+            <span key={`task-${v.group}-${v.task}`}>{v.task}</span>
+          ))}
           {isActivity(e) && <span>{e.activity_category}</span>}
-          {e.kind === "log" && !isActivity(e) && !e.work_group && (
+          {e.kind === "log" && !isActivity(e) && !groupsOf(e).length && (
             <span>분류 미지정</span>
           )}
           {e.kind === "log" && (
-            <span>{e.plan_id ? "계획 연결" : "계획 외 작업"}</span>
+            <span>
+              {plansOf(e).length
+                ? `계획 연결 ${plansOf(e).length}개`
+                : "계획 외 작업"}
+            </span>
           )}
           {s.assets.some((a) => a.entry_id === e.id && a.ready) && (
             <span>
@@ -1028,8 +1049,7 @@ export default function App() {
                               <td>
                                 {
                                   active.filter(
-                                    (l) =>
-                                      l.kind === "log" && l.plan_id === e.id,
+                                    (l) => l.kind === "log" && hasPlan(l, e.id),
                                   ).length
                                 }
                                 건
@@ -1126,6 +1146,11 @@ export default function App() {
                     kind: "log",
                     initial: {
                       copied: true,
+                      work_groups: source.work_groups,
+                      work_items: source.work_items,
+                      crop_names: source.crop_names,
+                      zone_names: source.zone_names,
+                      plan_ids: source.plan_ids,
                       title: source.title,
                       body: source.body,
                       crop: source.crop,

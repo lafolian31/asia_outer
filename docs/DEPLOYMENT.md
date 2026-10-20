@@ -10,6 +10,7 @@
    이어서 `supabase/migrations/202610180001_resource_categories.sql`을 실행합니다. 기존 설치에 분류 기능을 추가할 때는 이 두 번째 파일만 실행합니다. 기존 자료를 삭제하지 않으며 반복 실행해도 설정한 목록을 초기화하지 않습니다.
    감정표현·댓글 기능에는 이어서 `supabase/migrations/202610190001_discussion.sql`을 실행합니다. 기존 설치에는 이 파일만 추가 실행합니다. 작업일지·자료는 보존되며 댓글·감정표현 전용 테이블과 권한 검사가 추가됩니다.
    선택형 농작업·운영 기록에는 `supabase/migrations/202610190002_selectable_work.sql`을 추가 실행합니다. 기존 기록의 분류를 추정하지 않으며 사진·작성자·계획 연결을 유지합니다. 운영 SQL 적용 전에는 UI가 기존 입력 방식으로 동작하고 운영 기록 생성을 제한합니다.
+   복수 선택 기록에는 `supabase/migrations/202610200001_multi_recording.sql`을 추가 실행합니다. 기존 단일 선택을 일괄 변환하지 않고 nullable 배열과 FK로 보호한 계획 관계를 추가합니다. 그 전까지 화면은 단일 선택을 유지합니다.
 4. Authentication 설정에서 Email·Password 사용, **공개 회원가입 비활성화**를 확인합니다. 로그인 계정이 있어도 별도 참여 승인 없이는 농장 자료를 볼 수 없습니다.
 5. Authentication → Users → Add user에서 소유자 본인의 이메일·12자 이상 임시 비밀번호로 계정을 생성하고 확인 완료 상태를 설정합니다. Invite by email 기능은 기본 SMTP 제약 때문에 사용하지 않습니다.
 6. `scripts/initialize-owner.sql`의 `owner_email`을 그 계정 이메일로 바꾸고 SQL Editor에서 실행합니다. 이것이 최초 관리자 지정이며, 선착순 회원가입자가 관리자가 되는 방식이 아닙니다.

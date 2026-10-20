@@ -247,7 +247,7 @@ await test("추가 마이그레이션 재실행은 기존 일지·계획·사진
     ],
     {
       input: readFileSync(
-        "supabase/migrations/202610190002_selectable_work.sql",
+        "supabase/migrations/202610200001_multi_recording.sql",
       ),
       stdio: ["pipe", "pipe", "pipe"],
     },

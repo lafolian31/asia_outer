@@ -92,6 +92,7 @@ check(
       zones: manifest.settings.zones,
       crops: manifest.settings.crops,
       resource_categories: manifest.settings.resource_categories || ["일반"],
+      ...(manifest.settings.multi_recording ? { multi_recording: true } : {}),
       ...(manifest.settings.work_catalog
         ? { work_catalog: manifest.settings.work_catalog }
         : {}),

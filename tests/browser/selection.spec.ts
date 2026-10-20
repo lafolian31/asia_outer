@@ -65,17 +65,24 @@ test("모바일 빠른 선택·작물 등록·자동 제목·다중 사진·필�
     await expect(dialog.getByLabel("제목", { exact: true })).toHaveValue(
       crop + " · 제초",
     );
-    const zones = dialog.getByLabel("작업 장소", { exact: true });
-    const firstZone =
-      (await zones.locator("option").nth(1).getAttribute("value")) ||
-      (await zones.locator("option").nth(1).textContent());
-    await zones.selectOption(firstZone!);
+    const zones = dialog
+      .locator(".multi-choice")
+      .filter({ has: page.locator('fieldset[aria-label="작업 장소"]') });
+    await zones.locator("summary").click();
+    const firstZone = await zones
+      .locator("input[type=checkbox]")
+      .first()
+      .getAttribute("value");
+    await zones.locator("input[type=checkbox]").first().check();
     await dialog
       .getByText("작업량·참여자 추가 (선택)", { exact: true })
       .click();
     await dialog.getByLabel("작업량", { exact: true }).fill("2.5");
     await dialog.getByLabel("단위", { exact: true }).fill("두둑");
-    await dialog.locator("input[type=checkbox]").first().check();
+    await dialog
+      .locator(".participant-options input[type=checkbox]")
+      .first()
+      .check();
     const picture = await page.screenshot({
       clip: { x: 0, y: 0, width: 100, height: 100 },
     });
@@ -125,10 +132,18 @@ test("모바일 빠른 선택·작물 등록·자동 제목·다중 사진·필�
     await page
       .getByRole("button", { name: "농작업 기록하기", exact: true })
       .click();
-    await expect(dialog.getByLabel("작물", { exact: true })).toHaveValue(crop);
-    await expect(dialog.getByLabel("작업 장소", { exact: true })).toHaveValue(
-      firstZone!,
-    );
+    await expect(
+      dialog
+        .locator(".multi-choice")
+        .filter({ has: page.locator('fieldset[aria-label="작물"]') })
+        .locator("summary"),
+    ).toContainText(crop);
+    await expect(
+      dialog
+        .locator(".multi-choice")
+        .filter({ has: page.locator('fieldset[aria-label="작업 장소"]') })
+        .locator("summary"),
+    ).toContainText(firstZone!);
     page.once("dialog", (d) => d.accept());
     await dialog.getByRole("button", { name: "닫기", exact: true }).click();
     expect(

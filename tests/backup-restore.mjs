@@ -120,12 +120,38 @@ for (const e of manifest.entries) {
     "quantity_unit",
   ])
     assert.equal(copy[key], e[key], key);
+  for (const key of [
+    "work_groups",
+    "work_items",
+    "crop_names",
+    "zone_names",
+    "plan_ids",
+  ])
+    assert.deepEqual(copy[key], e[key], key);
   assert.equal(copy.author_id, map[e.author_id]);
   assert.deepEqual(
     copy.participant_ids,
     (e.participant_ids || []).map((id) => map[id]),
   );
 }
+const restoredLinks = await db
+  .from("entry_plan_links")
+  .select("entry_id,plan_id");
+assert.ifError(restoredLinks.error);
+const expectedLinks = manifest.entries
+  .filter((e) => e.kind === "log")
+  .flatMap((e) =>
+    (e.plan_ids ?? (e.plan_id ? [e.plan_id] : [])).map((plan_id) => ({
+      entry_id: e.id,
+      plan_id,
+    })),
+  );
+const linkOrder = (a, b) =>
+  (a.entry_id + a.plan_id).localeCompare(b.entry_id + b.plan_id);
+assert.deepEqual(
+  restoredLinks.data.sort(linkOrder),
+  expectedLinks.sort(linkOrder),
+);
 const memberResult = await db.from("members").select("*");
 assert.ifError(memberResult.error);
 for (const m of manifest.members) {

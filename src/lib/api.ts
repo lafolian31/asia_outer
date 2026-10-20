@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Asset, Entry, Member, Settings, Snapshot } from "./types";
+import { plansOf, cropsOf, zonesOf, groupsOf, tasksOf, hasPlan } from "./work";
 import { csv, download } from "./utils.js";
 
 const url = import.meta.env.VITE_SUPABASE_URL;
@@ -124,7 +125,7 @@ export async function fileBlob(asset: Asset) {
   return data;
 }
 export async function purge(entry: Entry, assets: Asset[], entries: Entry[]) {
-  if (entries.some((e) => e.plan_id === entry.id))
+  if (entries.some((e) => hasPlan(e, entry.id)))
     throw new Error(
       "연결된 일지를 먼저 분리해야 계획을 영구 삭제할 수 있습니다.",
     );
@@ -188,10 +189,12 @@ export function exportCsv(s: Snapshot) {
       e.status,
       e.actual_date,
       e.result,
-      s.entries.find((p) => p.id === e.plan_id)?.title || "",
+      plansOf(e)
+        .map((id) => s.entries.find((p) => p.id === id)?.title || "이전 계획")
+        .join(", "),
       name(e.author_id),
-      e.zone,
-      e.crop,
+      zonesOf(e).join(", "),
+      cropsOf(e).join(", "),
       e.category,
       e.url,
       e.created_at,
@@ -200,8 +203,10 @@ export function exportCsv(s: Snapshot) {
       e.completed_at,
       e.deleted_at,
       e.record_type || "",
-      e.work_group || "",
-      e.work_task || "",
+      groupsOf(e).join(", "),
+      tasksOf(e)
+        .map((w) => `${w.group}: ${w.task}`)
+        .join(", "),
       e.activity_category || "",
       e.quantity ?? "",
       e.quantity_unit || "",

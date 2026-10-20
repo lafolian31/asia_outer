@@ -3,7 +3,15 @@ import { Download, ExternalLink, X, Trash2, Pencil } from "lucide-react";
 import type { Entry, Member, Snapshot, Asset } from "../lib/types";
 import { fileBlob, rpc } from "../lib/api";
 import { canEdit, download, readableError, safeUrl } from "../lib/utils.js";
-import { isActivity } from "../lib/work";
+import {
+  isActivity,
+  cropsOf,
+  zonesOf,
+  groupsOf,
+  tasksOf,
+  plansOf,
+  hasPlan,
+} from "../lib/work";
 import { Discussion } from "./Discussion";
 export function Attachment({ asset }: { asset: Asset }) {
   const [src, setSrc] = useState("");
@@ -101,14 +109,16 @@ export function Detail({
   const name = (id: string) =>
     s.members.find((m) => m.user_id === id)?.display_name || "이전 참여자";
   const logs = s.entries
-    .filter((l) => l.plan_id === e.id && !l.deleted_at)
+    .filter((l) => hasPlan(l, e.id) && !l.deleted_at)
     .sort(
       (a, b) =>
         (a.work_date || a.created_at).localeCompare(
           b.work_date || b.created_at,
         ) || a.created_at.localeCompare(b.created_at),
     );
-  const linked = s.entries.find((p) => p.id === e.plan_id);
+  const linked = plansOf(e)
+    .map((id) => s.entries.find((p) => p.id === id))
+    .filter((p): p is Entry => !!p);
   const assets = s.assets.filter((a) => a.entry_id === e.id && a.ready);
   async function trash() {
     if (!confirm("휴지통으로 이동할까요? 관리자가 복원할 수 있습니다.")) return;
@@ -143,13 +153,17 @@ export function Detail({
       <p className="muted">
         {e.work_date || e.start_date || e.created_at.slice(0, 10)} ·{" "}
         {name(e.author_id)}
-        {e.zone && " · " + e.zone}
-        {e.crop && " · " + e.crop}
+        {!!zonesOf(e).length && " · " + zonesOf(e).join(", ")}
+        {!!cropsOf(e).length && " · " + cropsOf(e).join(", ")}
       </p>
       {e.kind === "log" && (
         <div className="record-tags">
-          {e.work_group && <span>{e.work_group}</span>}
-          {e.work_task && <span>{e.work_task}</span>}
+          {groupsOf(e).map((g) => (
+            <span key={`group-${g}`}>{g}</span>
+          ))}
+          {tasksOf(e).map((w) => (
+            <span key={`${w.group}-${w.task}`}>{w.task}</span>
+          ))}
           {e.activity_category && isActivity(e) && (
             <span>{e.activity_category}</span>
           )}
@@ -172,12 +186,18 @@ export function Detail({
       {e.kind === "log" && (
         <div className="inset">
           <small>연결된 계획</small>
-          {linked ? (
-            <button className="text-button" onClick={() => onOpen(linked)}>
-              {linked.target_year} · {linked.title}
-            </button>
+          {linked.length ? (
+            linked.map((p) => (
+              <button
+                className="text-button"
+                key={p.id}
+                onClick={() => onOpen(p)}
+              >
+                {p.target_year} · {p.title}
+              </button>
+            ))
           ) : (
-            <p>계획 외 작업</p>
+            <p>{plansOf(e).length ? "이전 연결 계획" : "계획 외 작업"}</p>
           )}
         </div>
       )}

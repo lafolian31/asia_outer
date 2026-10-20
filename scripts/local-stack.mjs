@@ -143,7 +143,15 @@ run(
 const pause = () => new Promise((r) => setTimeout(r, 500));
 for (let i = 0; i < 60; i++) {
   try {
-    docker(["exec", prefix + "-db", "pg_isready", "-U", "postgres"]);
+    docker([
+      "exec",
+      prefix + "-db",
+      "pg_isready",
+      "-h",
+      "127.0.0.1",
+      "-U",
+      "postgres",
+    ]);
     break;
   } catch {
     await pause();
@@ -257,6 +265,9 @@ sql(
 sql(readFileSync("supabase/migrations/202610190001_discussion.sql", "utf8"));
 sql(
   readFileSync("supabase/migrations/202610190002_selectable_work.sql", "utf8"),
+);
+sql(
+  readFileSync("supabase/migrations/202610200001_multi_recording.sql", "utf8"),
 );
 writeFileSync(
   replica ? ".env.restore-test" : ".env.test",

@@ -3,6 +3,15 @@ import { X, ImagePlus, Save } from "lucide-react";
 import type { Entry, Kind, Snapshot } from "../lib/types";
 import { compressPhoto, rpc, upload } from "../lib/api";
 import { activityCategories, recordTitle, workGroupNames } from "../lib/work";
+import { MultiChoice } from "./MultiChoice";
+import {
+  cropsOf,
+  zonesOf,
+  groupsOf,
+  tasksOf,
+  plansOf,
+  multiRecordTitle,
+} from "../lib/work";
 import { readableError, statuses, today } from "../lib/utils.js";
 const labels = { log: "농작업일지", plan: "농장계획", resource: "자료" };
 export function Editor({
@@ -23,7 +32,13 @@ export function Editor({
   onSaved: () => Promise<void>;
 }) {
   const enhanced = kind === "log" && !!snapshot.settings.work_catalog;
-  let recent: { crop?: string; zone?: string } = {};
+  const multiAvailable = !!snapshot.settings.multi_recording;
+  let recent: {
+    crop?: string;
+    zone?: string;
+    crop_names?: string[];
+    zone_names?: string[];
+  } = {};
   try {
     recent = JSON.parse(localStorage.getItem(`farm-recent-${userId}`) || "{}");
   } catch {
@@ -62,6 +77,27 @@ export function Editor({
   );
   const activity = form.record_type === "activity";
   const catalog = snapshot.settings.work_catalog || {};
+  const multi = enhanced && multiAvailable && !activity;
+  const [selectedGroups, setSelectedGroups] = useState(() =>
+    groupsOf(entry || initial || {}),
+  );
+  const [selectedTasks, setSelectedTasks] = useState(() =>
+    tasksOf(entry || initial || {}),
+  );
+  const [selectedCrops, setSelectedCrops] = useState(() =>
+    entry || (initial && (initial.crop_names != null || initial.crop))
+      ? cropsOf(entry || initial!)
+      : recent.crop_names || cropsOf({ crop: recent.crop }),
+  );
+  const [selectedZones, setSelectedZones] = useState(() =>
+    entry || (initial && (initial.zone_names != null || initial.zone))
+      ? zonesOf(entry || initial!)
+      : recent.zone_names || zonesOf({ zone: recent.zone }),
+  );
+  const [selectedPlans, setSelectedPlans] = useState(() =>
+    plansOf(entry || initial || {}),
+  );
+  const [customTasks, setCustomTasks] = useState<Record<string, string>>({});
   const [autoTitle, setAutoTitle] = useState(!entry && !initial?.title);
   const [newCrop, setNewCrop] = useState("");
   const [extraCrops, setExtraCrops] = useState<string[]>([]);
@@ -69,7 +105,13 @@ export function Editor({
     enhanced && autoTitle
       ? activity
         ? form.activity_category || "운영·교류"
-        : recordTitle(form.crop, form.work_task || form.work_group)
+        : multi
+          ? multiRecordTitle({
+              crop_names: selectedCrops,
+              work_groups: selectedGroups,
+              work_items: selectedTasks,
+            })
+          : recordTitle(form.crop, form.work_task || form.work_group)
       : form.title;
   const [base, setBase] = useState(entry);
   const id = useRef(entry?.id || crypto.randomUUID());
@@ -104,8 +146,8 @@ export function Editor({
         enhanced &&
         !entry &&
         !activity &&
-        !form.work_group &&
-        !form.work_task &&
+        !(multi ? selectedGroups.length : form.work_group) &&
+        !(multi ? selectedTasks.length : form.work_task) &&
         !form.body.trim() &&
         !files.length &&
         !form.title.trim()
@@ -132,6 +174,19 @@ export function Editor({
         ...form,
         kind,
         title,
+        ...(multi
+          ? {
+              work_groups: selectedGroups,
+              work_items: selectedTasks,
+              crop_names: selectedCrops,
+              zone_names: selectedZones,
+              plan_ids: selectedPlans,
+              work_group: selectedGroups[0] || "",
+              work_task: selectedTasks[0]?.task || "",
+              crop: selectedCrops[0] || "",
+              zone: selectedZones[0] || "",
+            }
+          : {}),
         quantity:
           form.quantity === "" || form.quantity == null
             ? null
@@ -142,7 +197,11 @@ export function Editor({
         end_date: kind === "plan" ? form.end_date : null,
         actual_date:
           kind === "plan" && form.actual_date ? form.actual_date : null,
-        plan_id: kind === "log" && form.plan_id ? form.plan_id : null,
+        plan_id: multi
+          ? selectedPlans[0] || null
+          : kind === "log" && form.plan_id
+            ? form.plan_id
+            : null,
         assignee: form.assignee || null,
       };
       const saved = await rpc<Entry>("save_entry", {
@@ -162,7 +221,16 @@ export function Editor({
         try {
           localStorage.setItem(
             `farm-recent-${userId}`,
-            JSON.stringify({ crop: form.crop, zone: form.zone }),
+            JSON.stringify(
+              multi
+                ? {
+                    crop: selectedCrops[0] || "",
+                    zone: selectedZones[0] || "",
+                    crop_names: selectedCrops,
+                    zone_names: selectedZones,
+                  }
+                : { crop: form.crop, zone: form.zone },
+            ),
           );
         } catch {
           /* Saving records never depends on device preferences. */
@@ -254,7 +322,147 @@ export function Editor({
             )}
           {enhanced && (
             <>
-              {!activity ? (
+              {!activity && multi ? (
+                <>
+                  <h3>
+                    어떤 작업을 했나요? <small>여러 개 선택 가능</small>
+                  </h3>
+                  <div
+                    className="work-groups"
+                    role="group"
+                    aria-label="작업 대분류"
+                  >
+                    {Array.from(
+                      new Set([...workGroupNames(catalog), ...selectedGroups]),
+                    ).map((group) => (
+                      <button
+                        key={group}
+                        type="button"
+                        aria-pressed={selectedGroups.includes(group)}
+                        onClick={() => {
+                          const removed = selectedGroups.includes(group);
+                          setSelectedGroups(
+                            removed
+                              ? selectedGroups.filter((g) => g !== group)
+                              : [...selectedGroups, group],
+                          );
+                          if (removed)
+                            setSelectedTasks(
+                              selectedTasks.filter((w) => w.group !== group),
+                            );
+                        }}
+                      >
+                        {group}
+                      </button>
+                    ))}
+                  </div>
+                  {selectedTasks.some((w) => !w.group) && (
+                    <fieldset className="task-selection">
+                      <legend>기존 세부작업 · 분류 미지정</legend>
+                      <div className="work-tasks">
+                        {selectedTasks
+                          .filter((w) => !w.group)
+                          .map((w) => (
+                            <button
+                              key={w.task}
+                              type="button"
+                              aria-pressed="true"
+                              onClick={() =>
+                                setSelectedTasks(
+                                  selectedTasks.filter(
+                                    (item) =>
+                                      item.group || item.task !== w.task,
+                                  ),
+                                )
+                              }
+                            >
+                              {w.task}
+                            </button>
+                          ))}
+                      </div>
+                    </fieldset>
+                  )}
+                  {selectedGroups.map((group) => (
+                    <fieldset
+                      className="task-selection"
+                      key={group}
+                      aria-label={`${group} 세부작업`}
+                    >
+                      <legend>{group}</legend>
+                      <div className="work-tasks">
+                        {Array.from(
+                          new Set([
+                            ...(catalog[group] || []),
+                            ...selectedTasks
+                              .filter((w) => w.group === group)
+                              .map((w) => w.task),
+                          ]),
+                        ).map((task) => {
+                          const selected = selectedTasks.some(
+                            (w) => w.group === group && w.task === task,
+                          );
+                          return (
+                            <button
+                              type="button"
+                              key={task}
+                              aria-pressed={selected}
+                              onClick={() =>
+                                setSelectedTasks(
+                                  selected
+                                    ? selectedTasks.filter(
+                                        (w) =>
+                                          !(
+                                            w.group === group && w.task === task
+                                          ),
+                                      )
+                                    : [...selectedTasks, { group, task }],
+                                )
+                              }
+                            >
+                              {task}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="crop-add">
+                        <label>
+                          직접 입력
+                          <input
+                            aria-label={`${group} 작업 직접 입력`}
+                            maxLength={100}
+                            value={customTasks[group] || ""}
+                            onChange={(e) =>
+                              setCustomTasks({
+                                ...customTasks,
+                                [group]: e.target.value,
+                              })
+                            }
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          disabled={!customTasks[group]?.trim()}
+                          onClick={() => {
+                            const task = customTasks[group].trim();
+                            if (
+                              !selectedTasks.some(
+                                (w) => w.group === group && w.task === task,
+                              )
+                            )
+                              setSelectedTasks([
+                                ...selectedTasks,
+                                { group, task },
+                              ]);
+                            setCustomTasks({ ...customTasks, [group]: "" });
+                          }}
+                        >
+                          작업 추가
+                        </button>
+                      </div>
+                    </fieldset>
+                  ))}
+                </>
+              ) : !activity ? (
                 <>
                   <h3>어떤 작업을 했나요?</h3>
                   <div
@@ -388,7 +596,31 @@ export function Editor({
               onChange={(e) => change("body", e.target.value)}
             />
           </label>
-          {kind !== "resource" && !activity && (
+          {multi && (
+            <div className="form-grid">
+              <MultiChoice
+                label="작업 장소"
+                values={selectedZones}
+                options={Array.from(
+                  new Set([...snapshot.settings.zones, ...selectedZones]),
+                ).map((value) => ({ value, label: value }))}
+                onChange={setSelectedZones}
+              />
+              <MultiChoice
+                label="작물"
+                values={selectedCrops}
+                options={Array.from(
+                  new Set([
+                    ...snapshot.settings.crops,
+                    ...extraCrops,
+                    ...selectedCrops,
+                  ]),
+                ).map((value) => ({ value, label: value }))}
+                onChange={setSelectedCrops}
+              />
+            </div>
+          )}
+          {kind !== "resource" && !activity && !multi && (
             <div className="form-grid">
               <label>
                 {enhanced ? "작업 장소" : "구역"} <small>선택</small>
@@ -449,7 +681,11 @@ export function Editor({
                   try {
                     await rpc("add_crop", { p_crop: newCrop });
                     setExtraCrops([...extraCrops, newCrop.trim()]);
-                    change("crop", newCrop.trim());
+                    if (multi)
+                      setSelectedCrops(
+                        Array.from(new Set([...selectedCrops, newCrop.trim()])),
+                      );
+                    else change("crop", newCrop.trim());
                     setNewCrop("");
                   } catch (e) {
                     setError(readableError(e));
@@ -515,7 +751,36 @@ export function Editor({
               </fieldset>
             </details>
           )}
-          {kind === "log" && (
+          {multi && (
+            <>
+              <MultiChoice
+                label="관련 농장계획"
+                values={selectedPlans}
+                options={Array.from(
+                  new Set([
+                    ...snapshot.entries
+                      .filter((p) => p.kind === "plan" && !p.deleted_at)
+                      .map((p) => p.id),
+                    ...selectedPlans,
+                  ]),
+                ).map((value) => {
+                  const plan = snapshot.entries.find((p) => p.id === value);
+                  return {
+                    value,
+                    label: plan
+                      ? `${plan.target_year} · ${plan.title}`
+                      : "이전 연결 계획",
+                  };
+                })}
+                onChange={setSelectedPlans}
+              />
+              <small>
+                계획을 선택하지 않아도 저장할 수 있으며, 연결만으로 완료되지
+                않습니다.
+              </small>
+            </>
+          )}
+          {kind === "log" && !multi && (
             <label>
               관련 농장계획 <small>선택 · 다른 연도 계획도 연결 가능</small>
               <select

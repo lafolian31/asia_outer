@@ -65,3 +65,7 @@ React·TypeScript·Vite 화면을 Cloudflare Pages Free에 정적으로 배포�
 ### 선택형 농작업 검증
 
 기존 `npm run test:integration` 다음 `npm run test:selection`로 최소 입력·운영 연결·권한·기존 데이터 보존을 확인합니다. `npm run test:e2e`에는 모바일 선택 입력, 사진 우선 보완, 필터/복사, 계획에서 작성, 관리자 목록 변경과 기존 기능 회귀 검증이 포함됩니다. 운영 추가 SQL은 `supabase/migrations/202610190002_selectable_work.sql`입니다. 백업/복구에 새 항목과 참여자 UUID 치환이 포함됩니다.
+
+### 복수 선택 검증
+
+로컬 계정 준비 후 `npm run test:multi`로 복수 저장·이전 클라이언트 보존·두 번째 계획 삭제 보호·권한을 검증합니다. 브라우저 `tests/browser/multi.spec.ts`는 PC·모바일의 여러 작업/작물/장소/계획 선택, 수정·해제·복사·찾기를 검사합니다. 신규 설치는 날짜순 모든 마이그레이션, 기존 선택형 설치는 `202610200001_multi_recording.sql`만 추가 실행합니다.

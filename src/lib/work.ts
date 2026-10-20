@@ -44,3 +44,31 @@ export function workGroupNames(catalog: Record<string, string[]>) {
     ...Object.keys(catalog).filter((g) => !(g in defaultWorkCatalog)),
   ];
 }
+
+export function choiceValues(
+  values: string[] | null | undefined,
+  legacy: string | null | undefined,
+): string[] {
+  return values ?? (legacy ? [legacy] : []);
+}
+export const cropsOf = (e: Partial<Entry>) =>
+  choiceValues(e.crop_names, e.crop);
+export const zonesOf = (e: Partial<Entry>) =>
+  choiceValues(e.zone_names, e.zone);
+export const groupsOf = (e: Partial<Entry>) =>
+  choiceValues(e.work_groups, e.work_group);
+export const plansOf = (e: Partial<Entry>) =>
+  choiceValues(e.plan_ids, e.plan_id);
+export const tasksOf = (e: Partial<Entry>) =>
+  e.work_items ??
+  (e.work_task ? [{ group: e.work_group || "", task: e.work_task }] : []);
+export const hasPlan = (e: Partial<Entry>, id: string) =>
+  plansOf(e).includes(id);
+export function multiRecordTitle(e: Partial<Entry>) {
+  return recordTitle(
+    cropsOf(e).join(", "),
+    tasksOf(e)
+      .map((w) => w.task)
+      .join(", ") || groupsOf(e).join(", "),
+  ).slice(0, 160);
+}

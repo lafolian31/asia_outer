@@ -24,6 +24,15 @@ async function login(page: Page, who: string) {
 async function nav(page: Page, name: string) {
   await page.locator("nav").getByRole("button", { name, exact: false }).click();
 }
+async function choosePlan(page: Page, id: string) {
+  const choices = page
+    .getByRole("dialog")
+    .locator(".multi-choice")
+    .filter({ has: page.locator('fieldset[aria-label="관련 농장계획"]') });
+  if ((await choices.getAttribute("open")) === null)
+    await choices.locator("summary").click();
+  await choices.locator(`input[value="${id}"]`).check();
+}
 const unique = "[브라우저 시험] " + Date.now();
 test("격리된 A·B 계정: 사진 일지 공유 / 본인 수정 / 재접속 유지", async ({
   browser,
@@ -48,7 +57,7 @@ test("격리된 A·B 계정: 사진 일지 공유 / 본인 수정 / 재접속 �
   await editor
     .getByLabel("작업 내용 및 특이사항")
     .fill("시험용 글과 사진을 다른 계정에서 확인합니다.");
-  await editor.getByLabel("관련 농장계획").selectOption(fixtures.plan.id);
+  await choosePlan(a, fixtures.plan.id);
   await editor.locator("input[type=file]").setInputFiles({
     name: "브라우저사진.png",
     mimeType: "image/png",
@@ -300,9 +309,13 @@ test("기존 사진 일지를 나중에 만든 계획에 수정 연결하고 재
     .getByRole("button", { name: "수정하기" })
     .click();
   dialog = page.getByRole("dialog");
-  await dialog
-    .getByLabel("관련 농장계획")
-    .selectOption({ label: `${year} · ${planTitle}` });
+  const choices = dialog
+    .locator(".multi-choice")
+    .filter({ has: page.locator('fieldset[aria-label="관련 농장계획"]') });
+  await choices.locator("summary").click();
+  await choices
+    .getByRole("checkbox", { name: `${year} · ${planTitle}`, exact: true })
+    .check();
   await dialog.getByRole("button", { name: "저장하기" }).click();
   await expect(dialog).toBeHidden();
   await page.reload();
