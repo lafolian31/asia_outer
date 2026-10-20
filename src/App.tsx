@@ -22,6 +22,7 @@ import {
 import { configured, db, snapshot, exportCsv } from "./lib/api";
 import {
   planStats,
+  comparePlanDates,
   readableError,
   roleLabels,
   today,
@@ -269,7 +270,7 @@ export default function App() {
     .filter(
       (e) => e.end_date! >= today() && ["미실행", "진행중"].includes(e.status),
     )
-    .sort((a, b) => a.start_date!.localeCompare(b.start_date!));
+    .sort((a, b) => comparePlanDates(a, b));
   const name = (id: string) =>
     s.members.find((m) => m.user_id === id)?.display_name || "이전 참여자";
   const filtered = active
@@ -349,9 +350,11 @@ export default function App() {
           : e.status === planStatus),
     )
     .sort((a, b) =>
-      (b.work_date || b.start_date || b.created_at).localeCompare(
-        a.work_date || a.start_date || a.created_at,
-      ),
+      page === "plan"
+        ? comparePlanDates(a, b)
+        : (b.work_date || b.start_date || b.created_at).localeCompare(
+            a.work_date || a.start_date || a.created_at,
+          ),
     );
   const card = (e: Entry) => (
     <button className="record-card" key={e.id} onClick={() => setDetail(e)}>
@@ -995,7 +998,7 @@ export default function App() {
                     {["log", "activity"].includes(page)
                       ? "실제 활동일 기준"
                       : page === "plan"
-                        ? "목표 연도 기준 · 연결된 일지는 다른 연도도 포함"
+                        ? "가까운 일정순 · 지난 일정은 아래에 표시"
                         : "새로 등록한 순"}
                   </small>
                 </div>

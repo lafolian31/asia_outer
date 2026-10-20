@@ -4,6 +4,7 @@ import {
   csv,
   canEdit,
   planStats,
+  comparePlanDates,
   safeUrl,
   today,
   matchesSearch,
@@ -128,4 +129,24 @@ test("첨부 사전 검증은 파일명과 원인을 표시하고 금지 확장�
     () => normalizeAttachment(new File(["x"], "가".repeat(201) + ".pdf")),
     /200자/,
   );
+});
+
+test("계획은 진행 중·오늘·가까운 미래순, 지난 일정은 뒤에 최근 종료순", () => {
+  const plan = (id, start_date, end_date) => ({ id, start_date, end_date });
+  const records = [
+    plan("far", "2026-12-01", "2026-12-02"),
+    plan("old", "2026-01-01", "2026-01-02"),
+    plan("near", "2026-10-21", "2026-10-22"),
+    plan("yesterday", "2026-10-18", "2026-10-19"),
+    plan("ongoing", "2026-10-01", "2026-10-23"),
+    plan("today", "2026-10-20", "2026-10-20"),
+  ];
+  assert.deepEqual(
+    [...records]
+      .sort((a, b) => comparePlanDates(a, b, "2026-10-20"))
+      .map((p) => p.id),
+    ["today", "ongoing", "near", "far", "yesterday", "old"],
+  );
+  assert.ok(comparePlanDates(records[2], records[0], "2026-10-23") > 0);
+  assert.equal(comparePlanDates(records[0], records[0], "2026-10-20"), 0);
 });

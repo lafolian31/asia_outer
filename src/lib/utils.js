@@ -99,3 +99,31 @@ export function searchDateForms(date) {
     `${year}년${Number(month)}월${Number(day)}일`,
   ];
 }
+
+// Ongoing/today first, then upcoming starts; finished date ranges go last.
+export function comparePlanDates(a, b, currentDate = today()) {
+  const endA = a.end_date || a.start_date || "";
+  const endB = b.end_date || b.start_date || "";
+  const pastA = endA < currentDate;
+  const pastB = endB < currentDate;
+  if (pastA !== pastB) return pastA ? 1 : -1;
+  if (pastA)
+    return (
+      endB.localeCompare(endA) ||
+      (b.start_date || "").localeCompare(a.start_date || "") ||
+      a.id.localeCompare(b.id)
+    );
+  const nextA =
+    (a.start_date || currentDate) < currentDate
+      ? currentDate
+      : a.start_date || currentDate;
+  const nextB =
+    (b.start_date || currentDate) < currentDate
+      ? currentDate
+      : b.start_date || currentDate;
+  return (
+    nextA.localeCompare(nextB) ||
+    endA.localeCompare(endB) ||
+    a.id.localeCompare(b.id)
+  );
+}
