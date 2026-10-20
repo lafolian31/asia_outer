@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Asset, Entry, Member, Settings, Snapshot } from "./types";
 import { plansOf, cropsOf, zonesOf, groupsOf, tasksOf, hasPlan } from "./work";
+import { normalizeAttachment } from "./files.js";
 import { csv, download } from "./utils.js";
 
 const url = import.meta.env.VITE_SUPABASE_URL;
@@ -57,6 +58,7 @@ export async function snapshot(): Promise<Snapshot> {
   return { entries, members, assets, settings: settings[0] };
 }
 export async function compressPhoto(file: File): Promise<File> {
+  file = normalizeAttachment(file);
   if (!file.type.startsWith("image/")) return file;
   if (!["image/jpeg", "image/png", "image/webp"].includes(file.type))
     throw new Error(
@@ -92,6 +94,7 @@ export async function compressPhoto(file: File): Promise<File> {
   });
 }
 export async function upload(entryId: string, file: File) {
+  file = normalizeAttachment(file);
   if (file.size > 10485760)
     throw new Error("파일은 10MB 이하로 선택해 주세요.");
   const id = crypto.randomUUID();

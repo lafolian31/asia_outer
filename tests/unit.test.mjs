@@ -79,3 +79,53 @@ test("통합 찾기는 여러 필드·공백·대소문자·한글 정규화와 
   assert.ok(matchesSearch("한글", ["한글"]));
   assert.deepEqual(searchDateForms(null), []);
 });
+
+test("지원 파일은 확장자로 MIME 통일: PPTX ZIP·PDF 별칭·빈 형식·대문자", async () => {
+  const { normalizeAttachment } = await import("../src/lib/files.js");
+  for (const [name, type, expected] of [
+    [
+      "고추.pptx",
+      "application/zip",
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    ],
+    ["고추.PPT", "application/mspowerpoint", "application/vnd.ms-powerpoint"],
+    ["회의록.PDF", "application/x-pdf", "application/pdf"],
+    ["한글.hwpx", "application/zip", "application/vnd.hancom.hwpx"],
+    [
+      "표.xlsx",
+      "",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ],
+    ["사진.JPG", "application/octet-stream", "image/jpeg"],
+    ["회의록.pdf ", "", "application/pdf"],
+  ]) {
+    const original = new File(["preserve contents"], name, { type });
+    const result = normalizeAttachment(original);
+    assert.equal(result.type, expected);
+    assert.equal(result.name, name.trim());
+    assert.equal(await result.text(), "preserve contents");
+  }
+});
+test("첨부 사전 검증은 파일명과 원인을 표시하고 금지 확장자·빈 파일·용량 초과 차단", async () => {
+  const { normalizeAttachment } = await import("../src/lib/files.js");
+  assert.throws(
+    () =>
+      normalizeAttachment(
+        new File(["x"], "실행.exe", { type: "application/pdf" }),
+      ),
+    /실행.exe.*확장자/,
+  );
+  assert.throws(
+    () => normalizeAttachment(new File([], "빈파일.pdf")),
+    /빈파일.pdf.*빈 파일/,
+  );
+  assert.throws(
+    () =>
+      normalizeAttachment(new File([new Uint8Array(10485761)], "큰발표.pptx")),
+    /큰발표.pptx.*10MB/,
+  );
+  assert.throws(
+    () => normalizeAttachment(new File(["x"], "가".repeat(201) + ".pdf")),
+    /200자/,
+  );
+});

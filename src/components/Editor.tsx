@@ -167,7 +167,15 @@ export function Editor({
       )
         throw new Error("첨부파일은 기록당 최대 10개입니다.");
       setProgress("파일 확인 중…");
-      remaining = await Promise.all(files.map(compressPhoto));
+      remaining = await Promise.all(
+        files.map(async (file) => {
+          try {
+            return await compressPhoto(file);
+          } catch (error) {
+            throw new Error(`「${file.name}」: ${readableError(error)}`);
+          }
+        }),
+      );
       setFiles(remaining);
       setProgress("기록 저장 중…");
       const data = {
@@ -213,7 +221,13 @@ export function Editor({
       savedBody = true;
       while (remaining.length) {
         setProgress(`첨부파일 저장 중… ${remaining.length}개 남음`);
-        await upload(saved.id, remaining[0]);
+        try {
+          await upload(saved.id, remaining[0]);
+        } catch (error) {
+          throw new Error(
+            `「${remaining[0].name}」 첨부 실패: ${readableError(error)}`,
+          );
+        }
         remaining = remaining.slice(1);
         setFiles(remaining);
       }

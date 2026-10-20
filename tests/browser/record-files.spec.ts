@@ -49,14 +49,35 @@ for (const [menu, button] of [
         clip: { x: 0, y: 0, width: 80, height: 80 },
       });
       await dialog.locator("#attachments").setInputFiles([
+        {
+          name: "지원안됨.zip",
+          mimeType: "application/zip",
+          buffer: Buffer.from("invalid"),
+        },
         { name: "첨부사진.png", mimeType: "image/png", buffer: picture },
         {
           name: "공동발표.pptx",
-          mimeType:
-            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+          mimeType: "application/zip",
           buffer: Buffer.from(content),
         },
+        {
+          name: "함께그린_정기회의록.PDF",
+          mimeType: "application/x-pdf",
+          buffer: Buffer.from("%PDF-1.4 test"),
+        },
       ]);
+      await dialog
+        .getByRole("button", { name: "저장하기", exact: true })
+        .click();
+      await expect(dialog.getByRole("alert")).toContainText("지원안됨.zip");
+      await expect(dialog.getByRole("alert")).toContainText(
+        "지원하지 않는 확장자",
+      );
+      await dialog
+        .locator(".selected-file")
+        .filter({ hasText: "지원안됨.zip" })
+        .getByRole("button", { name: "빼기" })
+        .click();
       await dialog
         .getByRole("button", { name: "저장하기", exact: true })
         .click();
@@ -76,6 +97,12 @@ for (const [menu, button] of [
         .click();
       const detail = other.getByRole("dialog");
       await expect(detail.locator(".attachments img")).toHaveCount(1);
+      await expect(
+        detail
+          .locator(".attachment")
+          .filter({ hasText: "함께그린_정기회의록.PDF" })
+          .getByRole("button", { name: "PDF 보기" }),
+      ).toBeVisible();
       const attachment = detail
         .locator(".attachment")
         .filter({ hasText: "공동발표.pptx" });
