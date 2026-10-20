@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { X, ImagePlus, Save } from "lucide-react";
+import { X, Paperclip, Save } from "lucide-react";
 import type { Entry, Kind, Snapshot } from "../lib/types";
 import { compressPhoto, rpc, upload } from "../lib/api";
 import { activityCategories, recordTitle, workGroupNames } from "../lib/work";
@@ -152,7 +152,7 @@ export function Editor({
         !files.length &&
         !form.title.trim()
       )
-        throw new Error("작업을 선택하거나 사진·메모를 추가해 주세요.");
+        throw new Error("작업을 선택하거나 사진·파일·메모를 추가해 주세요.");
       if (
         kind === "resource" &&
         !form.url &&
@@ -872,19 +872,13 @@ export function Editor({
           )}
           {kind !== "plan" && (
             <div className="upload-area">
-              <ImagePlus size={26} />
-              <label htmlFor="attachments">
-                {kind === "log" ? "사진 추가" : "파일 추가"}
-              </label>
+              <Paperclip size={26} />
+              <label htmlFor="attachments">사진·파일 추가</label>
               <input
                 id="attachments"
                 type="file"
                 multiple
-                accept={
-                  kind === "log"
-                    ? "image/jpeg,image/png,image/webp"
-                    : ".jpg,.jpeg,.png,.webp,.pdf,.xls,.xlsx,.doc,.docx,.hwp,.hwpx,.txt,.csv"
-                }
+                accept=".jpg,.jpeg,.png,.webp,.pdf,.ppt,.pptx,.xls,.xlsx,.doc,.docx,.hwp,.hwpx,.txt,.csv"
                 onChange={(e) => {
                   setFiles([...files, ...Array.from(e.target.files || [])]);
                   e.target.value = "";
@@ -893,8 +887,7 @@ export function Editor({
               <small>
                 최대 10개 · 사진은 긴 변 1,600px로 압축, 장당 2MB · 문서 10MB
                 <br />
-                JPG·PNG·WebP{" "}
-                {kind === "resource" && " / PDF·엑셀·워드·한글·TXT·CSV"}
+                JPG·PNG·WebP / PDF·PPT·엑셀·워드·한글·TXT·CSV
               </small>
               {files.map((f, i) => (
                 <div className="selected-file" key={i}>

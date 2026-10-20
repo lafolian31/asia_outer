@@ -55,3 +55,7 @@ Hosted Supabase에는 `scripts/local-bootstrap.sql`과 `scripts/local-storage-gr
 - Supabase 조직 Free 플랜·사용량과 Cloudflare Pages Free 상태.
 
 로컬 검증 결과가 hosted 프로젝트 설정까지 자동으로 검증해 주지는 않습니다. 이 확인이 끝난 뒤 승인된 참여자에게 실제 `pages.dev` 주소를 직접 전달합니다. 현재 실제 주소나 외부 참가자 초대 메시지는 생성·발송하지 않았습니다.
+
+### 농작업일지·운영·교류 문서 첨부
+
+기존 프로젝트에는 `supabase/migrations/202610200002_record_files.sql`을 SQL Editor에서 실행합니다. 기존 `reserve_asset` 함수의 일지 사진 전용 제한만 해제하며 작성자·관리자 권한, 지원 형식, 10개 및 900MB 한도는 유지합니다. 신규 설치와 로컬 시작에도 같은 마이그레이션을 적용합니다. 기존 기록·사진·작성자는 변경하지 않습니다. 프런트 배포와 SQL 적용이 모두 필요합니다. 유료 서비스나 추가 저장소는 사용하지 않습니다.
