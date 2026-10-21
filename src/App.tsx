@@ -2,11 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import {
   Sprout,
-  LayoutDashboard,
   BookOpen,
   CalendarDays,
   FolderOpen,
-  Settings,
   Plus,
   Search,
   ArrowUpRight,
@@ -18,7 +16,6 @@ import {
   KeyRound,
   Users,
   Camera,
-  CloudSun,
 } from "lucide-react";
 import { configured, db, snapshot, exportCsv } from "./lib/api";
 import {
@@ -48,16 +45,9 @@ import { Thumbnail } from "./components/Thumbnail";
 import { FarmWeather } from "./components/FarmWeather";
 import { FarmingInfo } from "./components/FarmingInfo";
 import { TextSizeControl } from "./components/TextSizeControl";
+import { navigation } from "./lib/navigation";
+import { SiteMap } from "./components/SiteMap";
 import { Password } from "./components/Password";
-const navigation = [
-  { id: "home", name: "홈", icon: LayoutDashboard },
-  { id: "plan", name: "농장계획", icon: CalendarDays },
-  { id: "log", name: "농작업일지", icon: BookOpen },
-  { id: "activity", name: "운영·교류", icon: Users },
-  { id: "resource", name: "자료함", icon: FolderOpen },
-  { id: "info", name: "영농정보", icon: CloudSun },
-  { id: "admin", name: "농장 관리", icon: Settings },
-];
 export default function App() {
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [session, setSession] = useState<Session | null>(null),
@@ -565,7 +555,9 @@ export default function App() {
                           ? "함께 참고할 문서, 사진, 링크를 한곳에 모아요."
                           : page === "info"
                             ? "농사에 필요한 날씨·토양·재배기술·재해 정보를 찾아보세요."
-                            : "우리 농장과 참여자, 소중한 기록을 관리하세요."}
+                            : page === "sitemap"
+                              ? "앱의 전체 메뉴 구조와 주요 기능을 한눈에 확인하세요. 메뉴 이름을 누르면 이동합니다."
+                              : "우리 농장과 참여자, 소중한 기록을 관리하세요."}
               </p>
             </div>
             {page === "home" && <FarmWeather />}
@@ -805,6 +797,12 @@ export default function App() {
                 </div>
               </div>
             </>
+          ) : page === "sitemap" ? (
+            <SiteMap
+              farmName={s.settings.name}
+              role={me.role}
+              onNavigate={navigate}
+            />
           ) : page === "info" ? (
             <FarmingInfo />
           ) : page === "admin" ? (

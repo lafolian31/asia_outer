@@ -49,6 +49,7 @@ for (const width of [320, 390, 1440]) {
           "자료함",
           "영농정보",
           "농장 관리",
+          "사이트맵",
         ]) {
           await page
             .locator("nav")
