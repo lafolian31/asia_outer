@@ -468,6 +468,18 @@ export default function App() {
       </aside>
       <div className="main-shell">
         <header className="topbar">
+          <a
+            className="community-brand"
+            href="#"
+            aria-label="함께그린 홈으로"
+            onClick={(event) => {
+              event.preventDefault();
+              navigate("home");
+            }}
+          >
+            <Sprout size={25} aria-hidden="true" />
+            <strong>함께그린</strong>
+          </a>
           <div className="breadcrumb">
             우리 농장 <ChevronRight size={14} />
             <span>
