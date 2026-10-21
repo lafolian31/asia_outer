@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Sprout, ArrowRight, LockKeyhole } from "lucide-react";
 import { db, rpc } from "../lib/api";
+import { TextSizeControl } from "./TextSizeControl";
 import { readableError } from "../lib/utils.js";
 export function Auth() {
   const [email, setEmail] = useState(""),
@@ -41,6 +42,7 @@ export function Auth() {
         <small>한 농장, 여러 사람, 하나의 기록.</small>
       </div>
       <div className="auth-form">
+        <TextSizeControl />
         <div className="lock-icon">
           <LockKeyhole size={27} />
         </div>
@@ -95,6 +97,7 @@ export function Join({ onJoined }: { onJoined: () => Promise<void> }) {
     [busy, setBusy] = useState(false);
   return (
     <main className="join">
+      <TextSizeControl />
       <Sprout size={42} />
       <h1>농장 참여 승인이 필요해요</h1>
       <p className="muted">

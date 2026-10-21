@@ -10,10 +10,10 @@
   color: #263b31;
   background: #f7f8f4;
   font-synthesis: none;
-  font-size: 15px;
+  font-size: 18px;
   line-height: 1.65;
   --green: #285d43;
-  --muted: #7a857c;
+  --muted: #52634f;
   --line: #e7ebe3;
   --light: #eff4ec;
   --gold: #c4a16b;
@@ -76,21 +76,21 @@ p {
   margin: 0;
 }
 h1 {
-  font-size: 28px;
+  font-size: 1.8333rem;
   letter-spacing: -1px;
   line-height: 1.45;
 }
 h2 {
-  font-size: 18px;
+  font-size: 1.2222rem;
   letter-spacing: -0.5px;
   line-height: 1.5;
 }
 h3 {
-  font-size: 15px;
+  font-size: 1rem;
   line-height: 1.5;
 }
 small {
-  font-size: 12px;
+  font-size: 0.8333rem;
   color: var(--muted);
 }
 .primary {
@@ -112,7 +112,7 @@ small {
   background: transparent;
   padding: 5px 0;
   min-height: 34px;
-  font-size: 13px;
+  font-size: 0.8889rem;
   text-align: left;
   justify-content: flex-start;
 }
@@ -126,7 +126,7 @@ small {
   padding: 8px;
   min-width: 36px;
   min-height: 36px;
-  color: #819082;
+  color: #52634f;
 }
 .danger {
   color: #a34b3c;
@@ -135,14 +135,14 @@ small {
 }
 .muted {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 0.8889rem;
   line-height: 1.8;
 }
 .brand {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 23px;
+  font-size: 1.5rem;
   font-weight: 750;
   letter-spacing: -1px;
   color: var(--green);
@@ -188,21 +188,21 @@ small {
 }
 .farm-selector > svg {
   flex-shrink: 0;
-  color: #65816b;
+  color: #52634f;
 }
 .farm-selector small {
-  font-size: 10px;
+  font-size: 0.7778rem;
   display: block;
   letter-spacing: 0.2px;
 }
 .farm-selector strong {
-  font-size: 13px;
+  font-size: 0.8889rem;
   word-break: break-word;
 }
 .nav-caption {
-  font-size: 10px;
+  font-size: 0.7778rem;
   letter-spacing: 1px;
-  color: #99a393;
+  color: #52634f;
   padding: 0 13px;
   margin-bottom: 12px;
 }
@@ -216,8 +216,8 @@ nav button {
   gap: 13px;
   border: 0;
   background: none;
-  color: #768073;
-  font-size: 14px;
+  color: #52634f;
+  font-size: 0.9444rem;
   padding: 13px 16px;
   font-weight: 500;
 }
@@ -238,14 +238,14 @@ nav button small {
 }
 .free-note {
   margin: 30px 12px 20px;
-  font-size: 11px;
+  font-size: 0.7778rem;
   color: #667b64;
 }
 .free-note small {
   display: block;
-  font-size: 10px;
+  font-size: 0.7778rem;
   margin: 4px 0 0 15px;
-  color: #a1a899;
+  color: #52634f;
 }
 .dot {
   display: inline-block;
@@ -266,16 +266,16 @@ nav button small {
   flex: 1;
 }
 .profile strong {
-  font-size: 12px;
+  font-size: 0.8333rem;
 }
 .profile small {
   display: block;
-  font-size: 10px;
+  font-size: 0.7778rem;
 }
 .avatar {
   border-radius: 50%;
   background: #e9eee0;
-  color: #69845c;
+  color: #52634f;
   width: 36px;
   height: 36px;
   display: flex;
@@ -301,8 +301,8 @@ nav button small {
   display: flex;
   align-items: center;
   gap: 13px;
-  font-size: 12px;
-  color: #929c90;
+  font-size: 0.8333rem;
+  color: #52634f;
 }
 .breadcrumb span {
   color: #52634f;
@@ -313,8 +313,8 @@ nav button small {
   gap: 14px;
 }
 .today-label {
-  font-size: 12px;
-  color: #8e978a;
+  font-size: 0.8333rem;
+  color: #52634f;
 }
 .mobile-logout {
   display: none;
@@ -332,22 +332,22 @@ nav button small {
   margin-bottom: 27px;
 }
 .eyebrow {
-  font-size: 10px;
+  font-size: 0.7778rem;
   letter-spacing: 1.6px;
   font-weight: 650;
-  color: #819374;
+  color: #52634f;
   display: block;
   margin-bottom: 7px;
 }
 .page-heading p {
-  color: #87917f;
+  color: #52634f;
   margin-top: 8px;
-  font-size: 13px;
+  font-size: 0.8889rem;
 }
 .page-heading .primary {
   white-space: nowrap;
   padding: 12px 19px;
-  font-size: 13px;
+  font-size: 0.8889rem;
 }
 .welcome-banner {
   display: flex;
@@ -370,24 +370,24 @@ nav button small {
   border: 1px solid #d7e0cd;
   border-radius: 20px;
   padding: 3px 10px;
-  font-size: 10px;
-  color: #738467;
+  font-size: 0.7778rem;
+  color: #52634f;
   margin-bottom: 13px;
 }
 .welcome-banner h2 {
-  font-size: 25px;
+  font-size: 1.6667rem;
   line-height: 1.5;
   color: #3c593a;
   font-weight: 650;
 }
 .welcome-banner p {
-  color: #879377;
-  font-size: 12px;
+  color: #52634f;
+  font-size: 0.8333rem;
   margin-top: 10px;
 }
 .welcome-banner button {
   margin-top: 12px;
-  font-size: 11px;
+  font-size: 0.7778rem;
   color: #4d7047;
 }
 .farm-art {
@@ -424,28 +424,28 @@ nav button small {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 12px;
-  color: #7f8a77;
+  font-size: 0.8333rem;
+  color: #52634f;
 }
 .stat-top svg {
   width: 18px;
-  color: #91a084;
+  color: #52634f;
 }
 .stat-value {
-  font-size: 30px;
+  font-size: 1.9444rem;
   font-weight: 650;
   line-height: 1.6;
   letter-spacing: -0.8px;
   margin: 6px 0;
 }
 .stat-value small {
-  font-size: 12px;
+  font-size: 0.8333rem;
   margin-left: 7px;
   font-weight: 400;
 }
 .stat-card > small {
-  font-size: 10px;
-  color: #a2aa9b;
+  font-size: 0.7778rem;
+  color: #52634f;
 }
 .dashboard-grid {
   display: grid;
@@ -471,14 +471,14 @@ nav button small {
   margin-bottom: 17px;
 }
 .section-heading h2 {
-  font-size: 15px;
+  font-size: 1rem;
 }
 .section-heading .text-button {
-  font-size: 11px;
-  color: #8b9783;
+  font-size: 0.7778rem;
+  color: #52634f;
 }
 .section-heading > svg {
-  color: #859379;
+  color: #52634f;
 }
 .dashboard-right {
   display: grid;
@@ -491,30 +491,30 @@ nav button small {
 .empty-icon {
   display: inline-flex;
   background: #f0f4e9;
-  color: #8ca27e;
+  color: #52634f;
   border-radius: 50%;
   padding: 20px;
   margin-bottom: 17px;
 }
 .empty h3 {
-  font-size: 14px;
+  font-size: 0.9444rem;
   color: #6c7c63;
 }
 .empty p {
-  font-size: 12px;
-  color: #98a18f;
+  font-size: 0.8333rem;
+  color: #52634f;
   max-width: 300px;
   margin: 8px auto 20px;
   line-height: 1.8;
 }
 .empty button {
-  font-size: 12px;
+  font-size: 0.8333rem;
 }
 .empty-small {
   padding: 23px 5px;
   text-align: center;
-  font-size: 12px;
-  color: #9aa391;
+  font-size: 0.8333rem;
+  color: #52634f;
   line-height: 1.9;
 }
 .record-card {
@@ -541,7 +541,7 @@ nav button small {
   height: 43px;
   background: #f3f5ec;
   border-radius: 9px;
-  color: #889b75;
+  color: #52634f;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -552,29 +552,29 @@ nav button small {
   min-width: 0;
 }
 .record-meta {
-  font-size: 10px;
-  color: #93a087;
+  font-size: 0.7778rem;
+  color: #52634f;
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
 }
 .record-main h3 {
-  font-size: 14px;
+  font-size: 0.9444rem;
   margin: 3px 0;
   color: #46583e;
   overflow-wrap: anywhere;
 }
 .record-main p {
-  font-size: 11px;
-  color: #97a08e;
+  font-size: 0.7778rem;
+  color: #52634f;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 600px;
 }
 .record-card > svg {
-  color: #b2bba9;
+  color: #52634f;
   flex-shrink: 0;
 }
 .record-tags {
@@ -588,8 +588,8 @@ nav button small {
   background: #f1f5ed;
   padding: 1px 6px;
   border-radius: 4px;
-  color: #8c9a7c;
-  font-size: 9px;
+  color: #52634f;
+  font-size: 0.7778rem;
 }
 .upcoming {
   width: 100%;
@@ -606,11 +606,11 @@ nav button small {
   flex: 1;
 }
 .upcoming strong {
-  font-size: 12px;
+  font-size: 0.8333rem;
 }
 .upcoming small {
   display: block;
-  font-size: 10px;
+  font-size: 0.7778rem;
   font-weight: 400;
   margin-top: 2px;
 }
@@ -623,17 +623,17 @@ nav button small {
   padding: 4px;
 }
 .date-square strong {
-  font-size: 17px;
-  color: #67814e;
+  font-size: 1.1111rem;
+  color: #52634f;
 }
 .date-square small {
-  font-size: 9px;
+  font-size: 0.7778rem;
 }
 .overdue {
   border: 0;
   background: #fff5e8;
-  color: #a17d3f;
-  font-size: 11px;
+  color: #52634f;
+  font-size: 0.7778rem;
   justify-content: flex-start;
   width: 100%;
   margin-top: 15px;
@@ -643,16 +643,16 @@ nav button small {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 10px;
-  color: #a3ac9b;
+  font-size: 0.7778rem;
+  color: #52634f;
   margin: 32px 0 6px;
 }
 .page-footer span {
   margin-left: auto;
-  font-size: 9px;
+  font-size: 0.7778rem;
 }
 .page-footer svg {
-  color: #9cad8b;
+  color: #52634f;
 }
 .filters {
   display: flex;
@@ -664,14 +664,14 @@ nav button small {
 }
 .filters label {
   margin: 0;
-  font-size: 11px;
+  font-size: 0.7778rem;
   min-width: 120px;
   flex: 1;
 }
 .filters input,
 .filters select {
   height: 43px;
-  font-size: 12px;
+  font-size: 0.8333rem;
   margin-top: 5px;
   min-width: 0;
 }
@@ -685,7 +685,7 @@ nav button small {
 .search svg {
   position: absolute;
   left: 13px;
-  color: #9aa58e;
+  color: #52634f;
   top: 17px;
 }
 .search input {
@@ -699,10 +699,10 @@ nav button small {
   gap: 15px;
 }
 .list-heading strong {
-  font-size: 13px;
+  font-size: 0.8889rem;
 }
 .list-heading small {
-  font-size: 10px;
+  font-size: 0.7778rem;
 }
 .plan-summary {
   display: flex;
@@ -714,11 +714,11 @@ nav button small {
   padding: 17px 22px;
   border-radius: 10px;
   margin-bottom: 20px;
-  font-size: 12px;
+  font-size: 0.8333rem;
 }
 .plan-summary small {
   margin-left: auto;
-  font-size: 10px;
+  font-size: 0.7778rem;
 }
 .green {
   color: #30704a;
@@ -732,15 +732,15 @@ table {
   border-collapse: collapse;
   min-width: 600px;
   margin-top: 18px;
-  font-size: 12px;
+  font-size: 0.8333rem;
 }
 th {
   text-align: left;
   padding: 12px;
   background: #f6f8f2;
-  font-size: 10px;
+  font-size: 0.7778rem;
   font-weight: 500;
-  color: #8b9780;
+  color: #52634f;
 }
 td {
   padding: 19px 12px;
@@ -752,30 +752,30 @@ td:first-child {
 }
 td small {
   display: block;
-  font-size: 10px;
+  font-size: 0.7778rem;
 }
 td p {
-  font-size: 11px;
-  color: #8f9b83;
+  font-size: 0.7778rem;
+  color: #52634f;
   max-width: 300px;
   max-height: 42px;
   overflow: hidden;
 }
 td .text-button {
-  font-size: 13px;
+  font-size: 0.8889rem;
 }
 .badge {
   display: inline-flex;
-  font-size: 10px;
+  font-size: 0.7778rem;
   white-space: nowrap;
   padding: 3px 9px;
   border-radius: 6px;
   background: #eef0e9;
-  color: #909783;
+  color: #52634f;
 }
 .status-1 {
   background: #edf2e2;
-  color: #8c9a57;
+  color: #52634f;
 }
 .status-2 {
   background: #e4f0e3;
@@ -783,11 +783,11 @@ td .text-button {
 }
 .status-3 {
   background: #f7eedc;
-  color: #ac8a46;
+  color: #52634f;
 }
 .status-4 {
   background: #f5e9e4;
-  color: #a87668;
+  color: #52634f;
 }
 .admin-grid {
   display: grid;
@@ -808,14 +808,14 @@ td .text-button {
   margin: 25px 0;
 }
 .usage strong {
-  font-size: 25px;
+  font-size: 1.6667rem;
 }
 .usage strong small {
-  font-size: 11px;
+  font-size: 0.7778rem;
   font-weight: 400;
 }
 .usage p {
-  font-size: 11px;
+  font-size: 0.7778rem;
   margin-top: 10px;
 }
 progress {
@@ -839,7 +839,7 @@ progress::-webkit-progress-value {
   flex-wrap: wrap;
 }
 .button-row button {
-  font-size: 12px;
+  font-size: 0.8333rem;
 }
 .member-list {
   margin: 17px 0 26px;
@@ -856,20 +856,20 @@ progress::-webkit-progress-value {
 }
 .member-row strong,
 .trash-row strong {
-  font-size: 13px;
+  font-size: 0.8889rem;
 }
 .member-row small,
 .trash-row small {
   display: block;
-  font-size: 10px;
+  font-size: 0.7778rem;
 }
 .member-row select {
   width: 110px;
-  font-size: 12px;
+  font-size: 0.8333rem;
 }
 .member-row button,
 .trash-row button {
-  font-size: 11px;
+  font-size: 0.7778rem;
 }
 .inset {
   background: #f4f7ef;
@@ -905,7 +905,7 @@ progress::-webkit-progress-value {
 }
 .invite-code code {
   word-break: break-all;
-  font-size: 12px;
+  font-size: 0.8333rem;
 }
 .invite-code small {
   flex-basis: 100%;
@@ -923,7 +923,7 @@ progress::-webkit-progress-value {
 .alert {
   padding: 13px 17px;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 0.8889rem;
   margin: 12px 0 22px;
   border: 1px solid #eccfc6;
 }
@@ -944,7 +944,7 @@ progress::-webkit-progress-value {
   color: white;
   border-radius: 12px;
   box-shadow: 0 6px 20px #0002;
-  font-size: 13px;
+  font-size: 0.8889rem;
   z-index: 50;
   max-width: 90vw;
 }
@@ -968,10 +968,10 @@ progress::-webkit-progress-value {
   margin-bottom: 23px;
 }
 .dialog-title h2 {
-  font-size: 24px;
+  font-size: 1.5556rem;
 }
 .dialog-title .eyebrow {
-  font-size: 10px;
+  font-size: 0.7778rem;
 }
 .dialog-footer {
   display: flex;
@@ -983,7 +983,7 @@ progress::-webkit-progress-value {
   gap: 15px;
 }
 .dialog-footer small {
-  font-size: 11px;
+  font-size: 0.7778rem;
 }
 fieldset {
   border: 0;
@@ -993,13 +993,13 @@ fieldset {
 }
 label {
   display: block;
-  font-size: 13px;
+  font-size: 0.8889rem;
   color: #617257;
   margin-bottom: 17px;
   font-weight: 550;
 }
 label small {
-  font-size: 10px;
+  font-size: 0.7778rem;
   font-weight: 400;
   margin-left: 4px;
 }
@@ -1029,8 +1029,8 @@ textarea {
 }
 input::placeholder,
 textarea::placeholder {
-  color: #afb7a5;
-  font-size: 12px;
+  color: #52634f;
+  font-size: 0.8333rem;
 }
 .form-grid {
   display: grid;
@@ -1038,7 +1038,7 @@ textarea::placeholder {
   gap: 0 18px;
 }
 .required {
-  color: #a87f4a;
+  color: #52634f;
 }
 .upload-area {
   background: #f9fbf6;
@@ -1046,27 +1046,27 @@ textarea::placeholder {
   border-radius: 10px;
   padding: 20px;
   text-align: center;
-  color: #8aa077;
+  color: #52634f;
 }
 .upload-area > label {
   margin: 5px;
 }
 .upload-area input {
   max-width: 100%;
-  font-size: 12px;
+  font-size: 0.8333rem;
   background: #fff;
 }
 .upload-area > small {
   display: block;
   margin-top: 10px;
-  font-size: 10px;
+  font-size: 0.7778rem;
 }
 .selected-file {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  font-size: 12px;
+  font-size: 0.8333rem;
   border-top: 1px solid var(--line);
   padding: 5px 0;
   margin-top: 8px;
@@ -1079,12 +1079,12 @@ textarea::placeholder {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   line-height: 1.9;
-  font-size: 14px;
+  font-size: 0.9444rem;
   margin: 20px 0;
   color: #52634b;
 }
 .detail h2 {
-  font-size: 25px;
+  font-size: 1.6667rem;
   margin-bottom: 10px;
 }
 .detail .dialog-title {
@@ -1094,24 +1094,24 @@ textarea::placeholder {
   display: grid;
   grid-template-columns: 100px 1fr;
   gap: 10px;
-  font-size: 12px;
+  font-size: 0.8333rem;
 }
 .detail dd {
   margin: 0;
   word-break: break-word;
 }
 .detail dt {
-  color: #8a987d;
+  color: #52634f;
 }
 .detail dd.prose {
-  font-size: 12px;
+  font-size: 0.8333rem;
 }
 .count {
   background: #eaf1e1;
-  color: #77975d;
+  color: #52634f;
   border-radius: 6px;
   padding: 1px 7px;
-  font-size: 11px;
+  font-size: 0.7778rem;
 }
 .attachments {
   display: grid;
@@ -1136,25 +1136,25 @@ textarea::placeholder {
   margin-bottom: 4px;
 }
 .attachment > span {
-  font-size: 12px;
+  font-size: 0.8333rem;
   overflow-wrap: anywhere;
 }
 .attachment > small {
-  font-size: 10px;
+  font-size: 0.7778rem;
 }
 .attachment .text-button {
-  font-size: 11px;
+  font-size: 0.7778rem;
 }
 .external-link {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: 0.8889rem;
   margin: 15px 0;
 }
 .timestamp {
-  font-size: 10px;
-  color: #9da991;
+  font-size: 0.7778rem;
+  color: #52634f;
   margin-top: 22px;
 }
 .linked-log {
@@ -1162,7 +1162,7 @@ textarea::placeholder {
   padding: 14px 0;
 }
 .linked-log p {
-  font-size: 12px;
+  font-size: 0.8333rem;
   margin: 5px 0;
 }
 .auth-layout {
@@ -1182,13 +1182,13 @@ textarea::placeholder {
   margin-bottom: 70px;
 }
 .auth-story h1 {
-  font-size: 35px;
+  font-size: 2.2222rem;
   line-height: 1.6;
   margin: 13px 0 20px;
 }
 .auth-story p {
-  font-size: 14px;
-  color: #839172;
+  font-size: 0.9444rem;
+  color: #52634f;
   line-height: 2;
 }
 .auth-story .farm-art {
@@ -1196,7 +1196,7 @@ textarea::placeholder {
   margin: 30px 0;
 }
 .auth-story > small {
-  font-size: 10px;
+  font-size: 0.7778rem;
 }
 .auth-form {
   align-self: center;
@@ -1206,21 +1206,21 @@ textarea::placeholder {
   padding: 0 20px;
 }
 .auth-form h2 {
-  font-size: 25px;
+  font-size: 1.6667rem;
   margin: 20px 0 8px;
 }
 .auth-form > .muted {
   margin-bottom: 30px;
 }
 .auth-form label {
-  font-size: 12px;
+  font-size: 0.8333rem;
 }
 .auth-form input {
   min-height: 49px;
 }
 .lock-icon {
   background: #edf3e6;
-  color: #6b8b59;
+  color: #52634f;
   width: 56px;
   height: 56px;
   border-radius: 16px;
@@ -1233,9 +1233,9 @@ textarea::placeholder {
   justify-content: space-between;
 }
 .auth-note {
-  font-size: 11px;
+  font-size: 0.7778rem;
   line-height: 1.9;
-  color: #96a08b;
+  color: #52634f;
   margin-top: 28px;
   border-top: 1px solid var(--line);
   padding-top: 22px;
@@ -1247,13 +1247,13 @@ textarea::placeholder {
   text-align: center;
 }
 .join > svg {
-  color: #789661;
+  color: #52634f;
   margin-bottom: 22px;
 }
 .join > p {
   margin: 15px 0 30px;
-  color: #8c997f;
-  font-size: 14px;
+  color: #52634f;
+  font-size: 0.9444rem;
 }
 .join form {
   text-align: left;
@@ -1261,10 +1261,10 @@ textarea::placeholder {
   margin: 25px auto;
 }
 .join .inset {
-  font-size: 12px;
+  font-size: 0.8333rem;
 }
 .join code {
-  font-size: 11px;
+  font-size: 0.7778rem;
 }
 .spin {
   animation: spin 1s linear infinite;
@@ -1299,7 +1299,7 @@ textarea::placeholder {
     padding: 27px 15px 0;
   }
   .sidebar .brand {
-    font-size: 21px;
+    font-size: 1.3889rem;
     margin-left: 5px;
   }
   .main-shell {
@@ -1329,7 +1329,7 @@ textarea::placeholder {
     gap: 13px;
   }
   .today-label {
-    font-size: 10px;
+    font-size: 0.7778rem;
   }
   .admin-grid {
     grid-template-columns: 1fr;
@@ -1344,7 +1344,7 @@ textarea::placeholder {
     padding: 24px 12px 0;
   }
   .sidebar .brand {
-    font-size: 19px;
+    font-size: 1.2778rem;
     gap: 7px;
   }
   .brand-icon {
@@ -1355,10 +1355,10 @@ textarea::placeholder {
     padding: 10px 8px;
   }
   .farm-selector strong {
-    font-size: 11px;
+    font-size: 0.7778rem;
   }
   nav button {
-    font-size: 12px;
+    font-size: 0.8333rem;
     padding: 12px 10px;
     gap: 8px;
   }
@@ -1376,10 +1376,10 @@ textarea::placeholder {
     padding: 0 20px;
   }
   .page-heading h1 {
-    font-size: 24px;
+    font-size: 1.5556rem;
   }
   .page-heading p {
-    font-size: 11px;
+    font-size: 0.7778rem;
   }
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -1395,13 +1395,13 @@ textarea::placeholder {
     align-self: end;
   }
   .welcome-banner h2 {
-    font-size: 22px;
+    font-size: 1.4444rem;
   }
   .welcome-banner p {
-    font-size: 10px;
+    font-size: 0.7778rem;
   }
   .auth-story h1 {
-    font-size: 27px;
+    font-size: 1.7778rem;
   }
   .auth-story {
     padding: 35px 8%;
@@ -1418,7 +1418,7 @@ textarea::placeholder {
 }
 @media (max-width: 640px) {
   body {
-    font-size: 14px;
+    font-size: 0.9444rem;
   }
   .sidebar {
     width: 100%;
@@ -1449,7 +1449,7 @@ textarea::placeholder {
     flex-direction: column;
     gap: 2px;
     padding: 6px 1px;
-    font-size: 9px;
+    font-size: 0.7778rem;
     line-height: 1.5;
     border-radius: 7px;
     white-space: nowrap;
@@ -1472,7 +1472,7 @@ textarea::placeholder {
     padding: 0 20px;
   }
   .breadcrumb {
-    font-size: 11px;
+    font-size: 0.7778rem;
     gap: 8px;
   }
   .mobile-logout {
@@ -1487,20 +1487,20 @@ textarea::placeholder {
     margin-bottom: 22px;
   }
   .eyebrow {
-    font-size: 9px;
+    font-size: 0.7778rem;
     letter-spacing: 1px;
   }
   .page-heading h1 {
-    font-size: 23px;
+    font-size: 1.5rem;
     letter-spacing: -0.8px;
   }
   .page-heading p {
-    font-size: 11px;
+    font-size: 0.7778rem;
     line-height: 1.8;
     max-width: 230px;
   }
   .page-heading .primary {
-    font-size: 11px;
+    font-size: 0.7778rem;
     padding: 9px 11px;
     min-height: 40px;
     margin-top: 20px;
@@ -1515,12 +1515,12 @@ textarea::placeholder {
     align-items: flex-start;
   }
   .welcome-banner h2 {
-    font-size: 21px;
+    font-size: 1.3889rem;
     line-height: 1.6;
   }
   .welcome-banner p {
     max-width: 190px;
-    font-size: 10px;
+    font-size: 0.7778rem;
   }
   .welcome-banner .farm-art {
     position: absolute;
@@ -1534,10 +1534,10 @@ textarea::placeholder {
     max-width: 73%;
   }
   .welcome-banner button {
-    font-size: 10px;
+    font-size: 0.7778rem;
   }
   .pill {
-    font-size: 9px;
+    font-size: 0.7778rem;
     padding: 2px 8px;
     margin-bottom: 10px;
   }
@@ -1550,17 +1550,17 @@ textarea::placeholder {
     border-radius: 10px;
   }
   .stat-top {
-    font-size: 11px;
+    font-size: 0.7778rem;
   }
   .stat-top svg {
     width: 17px;
   }
   .stat-value {
-    font-size: 28px;
+    font-size: 1.8333rem;
     margin: 3px 0;
   }
   .stat-card > small {
-    font-size: 9px;
+    font-size: 0.7778rem;
   }
   .dashboard-grid {
     gap: 17px;
@@ -1573,16 +1573,16 @@ textarea::placeholder {
     padding: 19px 17px;
   }
   .section-heading h2 {
-    font-size: 14px;
+    font-size: 0.9444rem;
   }
   .empty {
     padding: 25px 5px 30px;
   }
   .empty h3 {
-    font-size: 13px;
+    font-size: 0.8889rem;
   }
   .empty p {
-    font-size: 11px;
+    font-size: 0.7778rem;
   }
   .empty-icon {
     padding: 17px;
@@ -1595,16 +1595,16 @@ textarea::placeholder {
     gap: 10px;
   }
   .record-main h3 {
-    font-size: 13px;
+    font-size: 0.8889rem;
   }
   .record-main p {
     max-width: 220px;
   }
   .record-meta {
-    font-size: 9px;
+    font-size: 0.7778rem;
   }
   .page-footer {
-    font-size: 9px;
+    font-size: 0.7778rem;
     margin-top: 25px;
   }
   .filters {
@@ -1622,22 +1622,22 @@ textarea::placeholder {
   }
   .filters input,
   .filters select {
-    font-size: 11px;
+    font-size: 0.7778rem;
   }
   .list-heading small {
-    font-size: 9px;
+    font-size: 0.7778rem;
   }
   .plan-summary {
     gap: 10px;
     padding: 15px;
-    font-size: 11px;
+    font-size: 0.7778rem;
   }
   .plan-summary strong {
     flex-basis: 100%;
   }
   .plan-summary small {
     margin-left: 0;
-    font-size: 9px;
+    font-size: 0.7778rem;
   }
   .editor {
     width: 96vw;
@@ -1647,7 +1647,7 @@ textarea::placeholder {
   }
   .dialog-title h2,
   .detail h2 {
-    font-size: 22px;
+    font-size: 1.4444rem;
   }
   .dialog-title {
     margin-bottom: 20px;
@@ -1657,26 +1657,26 @@ textarea::placeholder {
     gap: 10px;
   }
   .dialog-footer small {
-    font-size: 9px;
+    font-size: 0.7778rem;
   }
   .dialog-footer .primary {
-    font-size: 12px;
+    font-size: 0.8333rem;
     padding: 9px 13px;
   }
   .form-grid {
     gap: 0 12px;
   }
   .editor label {
-    font-size: 12px;
+    font-size: 0.8333rem;
   }
   input,
   textarea,
   select {
-    font-size: 16px;
+    font-size: 1.0556rem;
   }
   label small {
     display: inline;
-    font-size: 9px;
+    font-size: 0.7778rem;
   }
   .attachments {
     gap: 10px;
@@ -1685,7 +1685,7 @@ textarea::placeholder {
     padding: 9px;
   }
   .attachment > span {
-    font-size: 10px;
+    font-size: 0.7778rem;
   }
   .member-row {
     gap: 7px;
@@ -1694,18 +1694,18 @@ textarea::placeholder {
   .member-row .avatar {
     width: 30px;
     height: 30px;
-    font-size: 12px;
+    font-size: 0.8333rem;
   }
   .member-row strong {
-    font-size: 11px;
+    font-size: 0.7778rem;
   }
   .member-row select {
     width: 87px;
     padding: 8px;
-    font-size: 11px;
+    font-size: 0.7778rem;
   }
   .member-row button {
-    font-size: 10px;
+    font-size: 0.7778rem;
     padding: 8px;
   }
   .invite-form {
@@ -1725,10 +1725,10 @@ textarea::placeholder {
   }
   .trash-row button {
     padding: 8px;
-    font-size: 10px;
+    font-size: 0.7778rem;
   }
   .usage strong {
-    font-size: 22px;
+    font-size: 1.4444rem;
   }
   .auth-layout {
     display: block;
@@ -1740,14 +1740,14 @@ textarea::placeholder {
     overflow: hidden;
   }
   .auth-story > .brand {
-    font-size: 20px;
+    font-size: 1.3333rem;
     margin-bottom: 23px;
   }
   .auth-story .eyebrow {
-    font-size: 9px;
+    font-size: 0.7778rem;
   }
   .auth-story h1 {
-    font-size: 22px;
+    font-size: 1.4444rem;
     margin: 0;
   }
   .auth-story p,
@@ -1773,22 +1773,22 @@ textarea::placeholder {
     margin: 30px auto;
   }
   .auth-form h2 {
-    font-size: 22px;
+    font-size: 1.4444rem;
   }
   .auth-form .lock-icon {
     display: none;
   }
   .auth-form input {
-    font-size: 16px;
+    font-size: 1.0556rem;
   }
   .auth-form .muted {
-    font-size: 12px;
+    font-size: 0.8333rem;
   }
   .toast {
     bottom: 82px;
     min-width: 240px;
     text-align: center;
-    font-size: 12px;
+    font-size: 0.8333rem;
   }
   .inset {
     padding: 16px;
@@ -1798,7 +1798,7 @@ textarea::placeholder {
     padding: 22px;
   }
   .join h1 {
-    font-size: 24px;
+    font-size: 1.5556rem;
   }
 }
 
@@ -1814,7 +1814,7 @@ textarea::placeholder {
   margin: 14px 0 22px;
 }
 .reaction-list button {
-  font-size: 13px;
+  font-size: 0.8889rem;
   padding: 8px 12px;
 }
 .reaction-list button[aria-pressed="true"] {
@@ -1843,7 +1843,7 @@ textarea::placeholder {
 /* Selection-first recording on PC and phones. */
 .record-primary {
   min-height: 52px;
-  font-size: 16px;
+  font-size: 1.0556rem;
   padding: 14px 22px;
 }
 .quick-record {
@@ -1868,7 +1868,7 @@ textarea::placeholder {
 .work-groups button,
 .work-tasks button {
   min-height: 44px;
-  font-size: 13px;
+  font-size: 0.8889rem;
 }
 .work-groups button[aria-pressed="true"],
 .work-tasks button[aria-pressed="true"] {
@@ -2097,7 +2097,7 @@ textarea::placeholder {
   display: flex;
 }
 .info-card h2 {
-  font-size: 21px;
+  font-size: 1.3889rem;
   margin: 4px 0 0;
   overflow-wrap: anywhere;
 }
@@ -2111,7 +2111,7 @@ textarea::placeholder {
 }
 .info-purpose strong {
   display: block;
-  font-size: 13px;
+  font-size: 0.8889rem;
 }
 .info-card details {
   margin-bottom: 20px;
@@ -2130,7 +2130,7 @@ textarea::placeholder {
 }
 .info-note {
   color: #69766a;
-  font-size: 13px;
+  font-size: 0.8889rem;
   line-height: 1.8;
   margin-top: 22px;
 }
@@ -2143,7 +2143,7 @@ textarea::placeholder {
     padding: 20px;
   }
   .info-card h2 {
-    font-size: 19px;
+    font-size: 1.2778rem;
   }
   .sidebar nav {
     justify-content: flex-start;
@@ -2172,7 +2172,7 @@ textarea::placeholder {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  font-size: 14px;
+  font-size: 0.9444rem;
 }
 .weather-title .icon-button {
   padding: 4px;
@@ -2188,25 +2188,25 @@ textarea::placeholder {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 12px;
+  font-size: 0.8333rem;
   color: #6a7b69;
 }
 .weather-values dd {
   margin: 6px 0 0;
   font-weight: 700;
-  font-size: 17px;
+  font-size: 1.1111rem;
   white-space: nowrap;
 }
 .weather-values dd small {
   display: block;
   min-height: 16px;
-  font-size: 10px;
+  font-size: 0.7778rem;
   font-weight: 400;
   color: #6a7b69;
 }
 .page-heading .farm-weather .weather-message,
 .page-heading .farm-weather .weather-error {
-  font-size: 10px;
+  font-size: 0.7778rem;
   line-height: 1.7;
   margin: 6px 0;
   max-width: none;
@@ -2215,7 +2215,7 @@ textarea::placeholder {
   color: #a34725;
 }
 .weather-source {
-  font-size: 10px;
+  font-size: 0.7778rem;
   color: #6a7b69;
 }
 .weather-source a {
@@ -2230,5 +2230,304 @@ textarea::placeholder {
     flex: auto;
     width: 100%;
     max-width: 500px;
+  }
+}
+
+/* Readable defaults and persistent optional magnification. */
+:root[data-text-size="large"] {
+  font-size: 21px;
+}
+:root[data-text-size="extra"] {
+  font-size: 24px;
+}
+body {
+  font-size: 1rem;
+}
+input,
+select,
+textarea {
+  font-size: 1rem;
+  min-width: 0;
+}
+button,
+input,
+select {
+  min-height: 48px;
+}
+button {
+  white-space: normal;
+}
+input::placeholder,
+textarea::placeholder {
+  color: #65715f;
+  opacity: 1;
+}
+p,
+.record-main,
+.info-card,
+.member-row,
+.selected-file {
+  overflow-wrap: anywhere;
+}
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #285d43;
+  outline-offset: 3px;
+}
+.text-size-control {
+  position: relative;
+  color: #263b31;
+}
+.text-size-control > summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 48px;
+  padding: 6px 12px;
+  border: 1px solid #bdcbb7;
+  border-radius: 9px;
+  background: white;
+  cursor: pointer;
+  font-size: 0.8889rem;
+  font-weight: 650;
+  white-space: nowrap;
+  list-style: none;
+}
+.text-size-control > summary::-webkit-details-marker {
+  display: none;
+}
+.text-size-control[open] > summary {
+  background: #eaf2e5;
+}
+.text-size-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 40;
+  padding: 18px;
+  width: min(350px, calc(100vw - 32px));
+  border: 1px solid #bdcbb7;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 8px 25px #263b3126;
+}
+.text-size-panel strong {
+  font-size: 0.9444rem;
+}
+.text-size-panel [role="group"] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0;
+}
+.text-size-panel button {
+  flex: 1 1 auto;
+  font-size: 0.8889rem;
+}
+.text-size-panel button[aria-pressed="true"] {
+  background: #285d43;
+  border-color: #285d43;
+  color: white;
+}
+.text-size-panel p {
+  font-size: 0.8333rem;
+  color: #52634f;
+  line-height: 1.8;
+}
+.auth-form > .text-size-control {
+  align-self: flex-end;
+  margin-bottom: 20px;
+}
+.join > .text-size-control {
+  float: right;
+  margin-bottom: 16px;
+}
+.topbar {
+  height: auto;
+  min-height: 76px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.top-actions {
+  flex-wrap: wrap;
+}
+.sidebar {
+  overflow-y: auto;
+}
+nav button {
+  line-height: 1.6;
+}
+.record-main {
+  min-width: 0;
+}
+.weather-values dd {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.farm-weather {
+  width: 400px;
+  flex-basis: 400px;
+}
+.weather-values {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.filters,
+.form-grid {
+  min-width: 0;
+}
+.editor .form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (max-width: 1100px) {
+  .farm-weather {
+    width: 100%;
+    flex-basis: auto;
+  }
+}
+@media (min-width: 641px) {
+  :root[data-text-size="extra"] .home-heading {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+@media (max-width: 900px) {
+  .breadcrumb {
+    display: none;
+  }
+  .top-actions {
+    margin-left: auto;
+  }
+}
+@media (max-width: 640px) {
+  .sidebar {
+    height: calc(88px + env(safe-area-inset-bottom));
+    overflow-y: hidden;
+  }
+  .sidebar nav {
+    padding-bottom: max(6px, env(safe-area-inset-bottom));
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+  .sidebar nav button {
+    flex: 1 0 auto;
+    min-width: 76px;
+    padding: 8px;
+    font-size: 0.8333rem;
+  }
+  .main-shell {
+    padding-bottom: calc(94px + env(safe-area-inset-bottom));
+  }
+  .topbar {
+    padding: 10px 16px;
+  }
+  .top-actions {
+    gap: 4px;
+  }
+  .top-actions .icon-button {
+    min-width: 44px;
+    min-height: 48px;
+  }
+  .text-size-control > summary {
+    padding: 6px 9px;
+  }
+  .text-size-panel {
+    position: fixed;
+    top: 70px;
+    right: 16px;
+    max-height: calc(100dvh - 180px);
+    overflow-y: auto;
+  }
+  .editor .form-grid,
+  .filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .editor {
+    padding: 20px 16px;
+  }
+  .dialog-footer {
+    flex-wrap: wrap;
+  }
+  .dialog-footer .primary {
+    flex: 1;
+  }
+  .record-meta {
+    flex-wrap: wrap;
+  }
+  .farm-weather {
+    max-width: none;
+  }
+}
+:root[data-text-size="extra"] .editor .form-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.record-main p {
+  font-size: 1rem;
+  line-height: 1.8;
+}
+.record-main h3 {
+  font-size: 1.1111rem;
+  line-height: 1.6;
+}
+.editor label {
+  font-size: 0.9444rem;
+}
+.filters label {
+  font-size: 0.8889rem;
+}
+td {
+  font-size: 0.9444rem;
+}
+td p {
+  font-size: 0.9444rem;
+  max-height: none;
+}
+button.text-button,
+button.icon-button {
+  min-height: 48px;
+}
+input[type="checkbox"],
+input[type="radio"] {
+  min-height: 24px;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+.participant-options label,
+.multi-choice label {
+  min-height: 48px;
+}
+
+.dashboard-grid,
+.dashboard-right,
+.panel {
+  min-width: 0;
+}
+.section-heading {
+  flex-wrap: wrap;
+}
+@media (max-width: 640px) {
+  :root[data-text-size="extra"] .stats-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  :root[data-text-size="extra"] .record-card .record-icon {
+    display: none;
+  }
+  :root[data-text-size="extra"] .record-main p {
+    white-space: normal;
+    max-width: none;
   }
 }

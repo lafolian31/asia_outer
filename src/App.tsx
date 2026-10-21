@@ -47,6 +47,7 @@ import {
 import { Thumbnail } from "./components/Thumbnail";
 import { FarmWeather } from "./components/FarmWeather";
 import { FarmingInfo } from "./components/FarmingInfo";
+import { TextSizeControl } from "./components/TextSizeControl";
 import { Password } from "./components/Password";
 const navigation = [
   { id: "home", name: "홈", icon: LayoutDashboard },
@@ -489,6 +490,7 @@ export default function App() {
             </span>
           </div>
           <div className="top-actions">
+            <TextSizeControl />
             <span className="today-label">
               {new Date().toLocaleDateString("ko-KR", {
                 year: "numeric",
