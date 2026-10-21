@@ -8,6 +8,8 @@ import {
   safeUrl,
   today,
   matchesSearch,
+  matchesPlanSearch,
+  planMonthSearchFields,
   searchDateForms,
 } from "../src/lib/utils.js";
 test("본인·관리자·열람자 권한 구분", () => {
@@ -213,4 +215,33 @@ test("날씨는 확인된 좌표만 사용하고 시간·단위·일조 환산�
   );
   assert.throws(() => parseWeather({ ...body, current_units: {} }), /단위/);
   assert.throws(() => parseWeather({}), /기준 시각/);
+});
+
+test("계획 찾기는 여러 항목·날짜를 결합하고 상태와 목표연도를 정확히 구분", () => {
+  const entry = { target_year: 2027, status: "미실행" };
+  const fields = [
+    "들깨 파종",
+    "농장 관리자",
+    "2027",
+    "2027년",
+    "안녕동",
+    "완료된 일지 연결",
+    ...searchDateForms("2026-10-20"),
+  ];
+  assert.ok(matchesPlanSearch("들깨 관리자 10월", entry, fields));
+  assert.ok(matchesPlanSearch("목표연도:2027 미완료 안녕동", entry, fields));
+  assert.ok(matchesPlanSearch("2026", entry, fields));
+  assert.equal(matchesPlanSearch("목표연도:2026", entry, fields), false);
+  assert.equal(matchesPlanSearch("완료", entry, fields), false);
+  assert.ok(matchesPlanSearch("미실행", entry, fields));
+  assert.equal(matchesPlanSearch("들깨 없는작성자", entry, fields), false);
+  assert.ok(matchesPlanSearch("", entry, fields));
+});
+
+test("예정 월 찾기는 시작·종료일 사이의 월과 연도 경계를 포함", () => {
+  const fields = planMonthSearchFields("2026-11-20", "2027-02-05");
+  for (const query of ["12월", "2027 1월", "2027-01", "2026.12", "01월"])
+    assert.ok(matchesSearch(query, fields), query);
+  assert.equal(matchesSearch("2027-03", fields), false);
+  assert.deepEqual(planMonthSearchFields(null, null), []);
 });

@@ -90,11 +90,9 @@ for (const mobile of [false, true]) {
       for (const [label, scope] of [["올해 계획", ""]]) {
         // Leave old year, search, and status filters behind before opening the summary.
         await nav(page, "농장계획");
-        await page.getByLabel("목표 연도").fill(String(year + 1));
+        await page.getByLabel("검색어").fill(`목표연도:${year + 1}`);
         await page.getByLabel("검색어").fill("결과가 없어야 하는 이전 검색");
-        await page
-          .getByLabel("계획 상태", { exact: true })
-          .selectOption("취소");
+
         await nav(page, "홈");
         const card = page.getByRole("button", {
           name: new RegExp(`^${label} \\d+건 목록 보기$`),
@@ -110,11 +108,11 @@ for (const mobile of [false, true]) {
         await expect(
           page.getByRole("heading", { name: "농장계획", exact: true }),
         ).toBeVisible();
-        await expect(page.getByLabel("목표 연도")).toHaveValue(String(year));
-        await expect(page.getByLabel("계획 상태", { exact: true })).toHaveValue(
-          scope,
+        await expect(page.getByLabel("목표 연도")).toHaveCount(0);
+        await expect(page.getByLabel("계획 상태", { exact: true })).toHaveCount(
+          0,
         );
-        await expect(page.getByLabel("검색어")).toHaveValue("");
+        await expect(page.getByLabel("검색어")).toHaveValue(`목표연도:${year}`);
         await expect(page.locator("tbody tr")).toHaveCount(count);
         for (const [i, entry] of entries.entries()) {
           const visible =
@@ -128,23 +126,21 @@ for (const mobile of [false, true]) {
           ).toHaveCount(visible ? 1 : 0);
         }
       }
-      await page.getByLabel("계획 상태", { exact: true }).selectOption("완료");
+      await page.getByLabel("검색어").fill(`목표연도:${year} 완료`);
       await expect(
         page.getByRole("button", { name: entries[2].title, exact: true }),
       ).toBeVisible();
       await expect(
         page.getByRole("button", { name: entries[0].title, exact: true }),
       ).toHaveCount(0);
-      await page
-        .getByLabel("계획 상태", { exact: true })
-        .selectOption("pending");
+      await page.getByLabel("검색어").fill(`목표연도:${year} 미완료`);
       await expect(
         page.getByRole("button", { name: entries[0].title, exact: true }),
       ).toBeVisible();
       await expect(
         page.getByRole("button", { name: entries[2].title, exact: true }),
       ).toHaveCount(0);
-      await page.getByLabel("계획 상태", { exact: true }).selectOption("");
+      await page.getByLabel("검색어").fill(`목표연도:${year}`);
       await expect(
         page.getByRole("button", { name: entries[3].title, exact: true }),
       ).toBeVisible();

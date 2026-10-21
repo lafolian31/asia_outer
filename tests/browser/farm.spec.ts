@@ -161,7 +161,7 @@ test("연간 실적·연결 일지·결과 표시, 휴대전화 화면", async (
     ),
   ).toBeTruthy();
   await nav(page, "농장계획");
-  await page.getByLabel("목표 연도").fill("2025");
+  await page.getByLabel("검색어").fill("목표연도:2025");
   await page
     .getByRole("button", { name: fixtures.plan.title, exact: true })
     .click();

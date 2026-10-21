@@ -127,3 +127,54 @@ export function comparePlanDates(a, b, currentDate = today()) {
     a.id.localeCompare(b.id)
   );
 }
+
+// Status words select the plan's own status, not text in linked records.
+// The dashboard uses an explicit target-year term so crossing-year results stay accurate.
+export function matchesPlanSearch(query, entry, fields) {
+  const terms = String(query ?? "")
+    .normalize("NFKC")
+    .trim()
+    .split(/\s+/u)
+    .filter(Boolean);
+  const text = [];
+  for (const term of terms) {
+    const year = /^목표연도:(\d{4})년?$/.exec(term);
+    if (year) {
+      if (entry.target_year !== Number(year[1])) return false;
+    } else if (
+      ["미실행", "진행중", "완료", "보류", "취소", "미완료"].includes(term)
+    ) {
+      if (
+        term === "미완료"
+          ? !["미실행", "진행중"].includes(entry.status)
+          : entry.status !== term
+      )
+        return false;
+    } else text.push(term);
+  }
+  return matchesSearch(text.join(" "), fields);
+}
+
+export function planMonthSearchFields(start, end) {
+  if (
+    !/^\d{4}-\d{2}-\d{2}$/.test(start || "") ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(end || "")
+  )
+    return [];
+  const first = Number(start.slice(0, 4)) * 12 + Number(start.slice(5, 7)) - 1;
+  const last = Number(end.slice(0, 4)) * 12 + Number(end.slice(5, 7)) - 1;
+  const fields = [];
+  for (let index = first; index <= last && index - first < 2412; index++) {
+    const year = Math.floor(index / 12),
+      month = (index % 12) + 1,
+      padded = String(month).padStart(2, "0");
+    fields.push(
+      `${year}년${month}월`,
+      `${year}년${padded}월`,
+      `${year}-${padded}`,
+      `${year}.${padded}`,
+      `${year}/${padded}`,
+    );
+  }
+  return fields;
+}

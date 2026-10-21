@@ -26,7 +26,7 @@ export const navigation = [
     icon: CalendarDays,
     description: "농장 일정과 연결된 기록을 확인해요.",
     features: [
-      "연도·월별 계획 조회",
+      "연도·날짜·상태 통합 찾기",
       "계획 작성과 실행 결과",
       "관련 농작업·운영 기록 연결",
     ],

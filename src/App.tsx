@@ -25,6 +25,8 @@ import {
   roleLabels,
   today,
   matchesSearch,
+  matchesPlanSearch,
+  planMonthSearchFields,
   searchDateForms,
 } from "./lib/utils.js";
 import type { Entry, Kind, Member, Snapshot } from "./lib/types";
@@ -70,9 +72,6 @@ export default function App() {
     [to, setTo] = useState(""),
     [author, setAuthor] = useState(""),
     [plan, setPlan] = useState(""),
-    [year, setYear] = useState(Number(today().slice(0, 4))),
-    [month, setMonth] = useState(""),
-    [planStatus, setPlanStatus] = useState(""),
     [category, setCategory] = useState(""),
     [activityCategory, setActivityCategory] = useState("");
   const me = s?.members.find((m) => m.user_id === session?.user.id && m.active);
@@ -170,14 +169,11 @@ export default function App() {
     setTo("");
     setPlan("");
     setAuthor("");
-    setMonth("");
-    setPlanStatus("");
     setActivityCategory("");
   }
-  function openCurrentPlans(status = "") {
+  function openCurrentPlans() {
     navigate("plan");
-    setYear(Number(today().slice(0, 4)));
-    setPlanStatus(status);
+    setQuery(`목표연도:${today().slice(0, 4)}`);
   }
 
   if (!configured)
@@ -217,11 +213,8 @@ export default function App() {
     );
   const active = s.entries.filter((e) => !e.deleted_at);
   const plans = active.filter((e) => e.kind === "plan");
-  const yearPlans = plans.filter((e) => e.target_year === year);
   const stats = planStats(
-    page === "home"
-      ? plans.filter((e) => e.target_year === Number(today().slice(0, 4)))
-      : yearPlans,
+    plans.filter((e) => e.target_year === Number(today().slice(0, 4))),
   );
   const logs = active
     .filter((e) => e.kind === "log" && !isActivity(e))
@@ -298,25 +291,63 @@ export default function App() {
               .filter((a) => a.entry_id === e.id && a.ready)
               .map((a) => a.name),
           ])
-        : (
-            e.title +
-            " " +
-            e.body +
-            " " +
-            e.result +
-            " " +
-            e.zone +
-            " " +
-            e.crop +
-            " " +
-            (e.work_task || "") +
-            " " +
-            (e.work_group || "")
-          )
-            .toLowerCase()
-            .includes(query.toLowerCase()),
+        : page === "plan"
+          ? matchesPlanSearch(query, e, [
+              e.title,
+              e.body,
+              e.result,
+              e.status,
+              e.target_year,
+              `${e.target_year}년`,
+              ...planMonthSearchFields(e.start_date, e.end_date),
+              ...searchDateForms(e.start_date),
+              ...searchDateForms(e.end_date),
+              ...searchDateForms(e.actual_date),
+              ...cropsOf(e),
+              ...zonesOf(e),
+              name(e.author_id),
+              e.assignee ? name(e.assignee) : "",
+              e.completed_by ? name(e.completed_by) : "",
+              ...active
+                .filter((l) => l.kind === "log" && hasPlan(l, e.id))
+                .flatMap((l) => [
+                  l.title,
+                  l.body,
+                  l.result,
+                  ...cropsOf(l),
+                  ...zonesOf(l),
+                  ...groupsOf(l),
+                  ...tasksOf(l).map((w) => w.task),
+                  name(l.author_id),
+                  ...(l.participant_ids || []).map(name),
+                  ...searchDateForms(l.work_date),
+                  ...s.assets
+                    .filter((a) => a.entry_id === l.id && a.ready)
+                    .map((a) => a.name),
+                ]),
+            ])
+          : (
+              e.title +
+              " " +
+              e.body +
+              " " +
+              e.result +
+              " " +
+              e.zone +
+              " " +
+              e.crop +
+              " " +
+              (e.work_task || "") +
+              " " +
+              (e.work_group || "")
+            )
+              .toLowerCase()
+              .includes(query.toLowerCase()),
     )
-    .filter((e) => page === "log" || !author || e.author_id === author)
+    .filter(
+      (e) =>
+        ["log", "plan"].includes(page) || !author || e.author_id === author,
+    )
     .filter(
       (e) =>
         page !== "activity" ||
@@ -324,25 +355,9 @@ export default function App() {
           (!to || e.work_date! <= to) &&
           (!plan || (plan === "none" ? !e.plan_id : e.plan_id === plan))),
     )
-    .filter(
-      (e) =>
-        page !== "plan" ||
-        (e.target_year === year &&
-          (!month ||
-            (e.start_date! <= `${year}-${month}-31` &&
-              e.end_date! >= `${year}-${month}-01`))),
-    )
     .filter((e) => !category || e.category === category)
     .filter(
       (e) => !activityCategory || e.activity_category === activityCategory,
-    )
-    .filter(
-      (e) =>
-        page !== "plan" ||
-        !planStatus ||
-        (planStatus === "pending"
-          ? ["미실행", "진행중"].includes(e.status)
-          : e.status === planStatus),
     )
     .sort((a, b) =>
       page === "plan"
@@ -351,6 +366,7 @@ export default function App() {
             a.work_date || a.start_date || a.created_at,
           ),
     );
+  const planSummary = planStats(filtered);
   const card = (e: Entry) => (
     <button className="record-card" key={e.id} onClick={() => setDetail(e)}>
       {(() => {
@@ -757,7 +773,6 @@ export default function App() {
                         className="overdue"
                         onClick={() => {
                           navigate("plan");
-                          setYear(overdue[0].target_year!);
                           setDetail(overdue[0]);
                         }}
                       >
@@ -813,12 +828,12 @@ export default function App() {
                 <details className="plan-results">
                   <summary>계획 상태·결과 요약 보기</summary>
                   <div className="plan-summary">
-                    <strong>{year}년 실적</strong>
-                    <span>전체 {stats.total}</span>
-                    <span className="green">완료 {stats.complete}</span>
-                    <span>미완료 {stats.pending}</span>
-                    <span>보류 {stats.held}</span>
-                    <span>취소 {stats.cancelled}</span>
+                    <strong>검색된 계획</strong>
+                    <span>전체 {planSummary.total}</span>
+                    <span className="green">완료 {planSummary.complete}</span>
+                    <span>미완료 {planSummary.pending}</span>
+                    <span>보류 {planSummary.held}</span>
+                    <span>취소 {planSummary.cancelled}</span>
                     <small>계획 외 작업은 완료 건수에 포함하지 않습니다.</small>
                   </div>
                 </details>
@@ -829,62 +844,18 @@ export default function App() {
                     <Search size={18} />
                     <input
                       aria-label="검색어"
-                      type={page === "log" ? "search" : "text"}
+                      type={["log", "plan"].includes(page) ? "search" : "text"}
                       placeholder={
                         page === "log"
                           ? "제목·작성자·작물·장소·작업·날짜 찾기"
-                          : "제목, 내용, 구역, 작물 검색"
+                          : page === "plan"
+                            ? "제목·작성자·연도·월·상태·담당자·결과 찾기"
+                            : "제목, 내용, 구역, 작물 검색"
                       }
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                     />
                   </label>
-                  {page === "plan" && (
-                    <>
-                      <label>
-                        목표 연도
-                        <input
-                          type="number"
-                          min="2000"
-                          max="2200"
-                          value={year}
-                          onChange={(e) => setYear(Number(e.target.value))}
-                        />
-                      </label>
-                      <label>
-                        예정 월
-                        <select
-                          value={month}
-                          onChange={(e) => setMonth(e.target.value)}
-                        >
-                          <option value="">전체 월</option>
-                          {Array.from({ length: 12 }, (_, i) =>
-                            String(i + 1).padStart(2, "0"),
-                          ).map((m) => (
-                            <option key={m} value={m}>
-                              {Number(m)}월
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label>
-                        계획 상태
-                        <select
-                          aria-label="계획 상태"
-                          value={planStatus}
-                          onChange={(e) => setPlanStatus(e.target.value)}
-                        >
-                          <option value="">전체 상태</option>
-                          <option value="pending">미실행 · 진행중</option>
-                          {["미실행", "진행중", "완료", "보류", "취소"].map(
-                            (status) => (
-                              <option key={status}>{status}</option>
-                            ),
-                          )}
-                        </select>
-                      </label>
-                    </>
-                  )}
                   {page === "activity" && (
                     <>
                       <label>
@@ -964,7 +935,7 @@ export default function App() {
                       </select>
                     </label>
                   )}
-                  {page !== "log" && (
+                  {!["log", "plan"].includes(page) && (
                     <label>
                       작성자
                       <select
@@ -1086,7 +1057,6 @@ export default function App() {
                       author ||
                       plan ||
                       category ||
-                      planStatus ||
                       activityCategory
                         ? "조건에 맞는 기록이 없습니다"
                         : "아직 기록이 없습니다"
