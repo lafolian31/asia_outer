@@ -255,9 +255,7 @@ test("계획에서 농작업·운영 기록 작성, 메뉴 분리와 계획의 �
     page.getByRole("heading", { name: activityTitle, exact: true }),
   ).toHaveCount(0);
   await nav(page, "운영·교류");
-  await page
-    .getByLabel("활동 분류 필터", { exact: true })
-    .selectOption("교육·견학");
+  await page.getByLabel("검색어").fill("교육·견학");
   await expect(
     page.getByRole("heading", { name: activityTitle, exact: true }),
   ).toBeVisible();

@@ -68,12 +68,8 @@ export default function App() {
     [online, setOnline] = useState(navigator.onLine),
     [refreshing, setRefreshing] = useState(false);
   const [query, setQuery] = useState(""),
-    [from, setFrom] = useState(""),
-    [to, setTo] = useState(""),
     [author, setAuthor] = useState(""),
-    [plan, setPlan] = useState(""),
-    [category, setCategory] = useState(""),
-    [activityCategory, setActivityCategory] = useState("");
+    [category, setCategory] = useState("");
   const me = s?.members.find((m) => m.user_id === session?.user.id && m.active);
   const writable = !!me && me.role !== "viewer";
   const refresh = useCallback(async () => {
@@ -165,11 +161,7 @@ export default function App() {
     setPage(next);
     setQuery("");
     setCategory("");
-    setFrom("");
-    setTo("");
-    setPlan("");
     setAuthor("");
-    setActivityCategory("");
   }
   function openCurrentPlans() {
     navigate("plan");
@@ -268,11 +260,12 @@ export default function App() {
         : e.kind === page && (page !== "log" || !isActivity(e)),
     )
     .filter((e) =>
-      page === "log"
+      ["log", "activity"].includes(page)
         ? matchesSearch(query, [
             e.title,
             e.body,
             e.result,
+            e.activity_category,
             ...cropsOf(e),
             ...zonesOf(e),
             ...groupsOf(e),
@@ -281,11 +274,12 @@ export default function App() {
             ...(e.participant_ids || []).map(name),
             ...searchDateForms(e.work_date),
             e.quantity == null ? "" : `${e.quantity} ${e.quantity_unit || ""}`,
-            !groupsOf(e).length ? "분류 미지정" : "",
+            page === "log" && !groupsOf(e).length ? "분류 미지정" : "",
             ...(plansOf(e).length
-              ? plansOf(e).map(
-                  (id) => plans.find((p) => p.id === id)?.title || "",
-                )
+              ? plansOf(e).flatMap((id) => {
+                  const linked = plans.find((p) => p.id === id);
+                  return [linked?.title || "", linked?.target_year || ""];
+                })
               : ["계획 외 작업"]),
             ...s.assets
               .filter((a) => a.entry_id === e.id && a.ready)
@@ -344,21 +338,8 @@ export default function App() {
               .toLowerCase()
               .includes(query.toLowerCase()),
     )
-    .filter(
-      (e) =>
-        ["log", "plan"].includes(page) || !author || e.author_id === author,
-    )
-    .filter(
-      (e) =>
-        page !== "activity" ||
-        ((!from || e.work_date! >= from) &&
-          (!to || e.work_date! <= to) &&
-          (!plan || (plan === "none" ? !e.plan_id : e.plan_id === plan))),
-    )
-    .filter((e) => !category || e.category === category)
-    .filter(
-      (e) => !activityCategory || e.activity_category === activityCategory,
-    )
+    .filter((e) => page !== "resource" || !author || e.author_id === author)
+    .filter((e) => page !== "resource" || !category || e.category === category)
     .sort((a, b) =>
       page === "plan"
         ? comparePlanDates(a, b)
@@ -844,75 +825,24 @@ export default function App() {
                     <Search size={18} />
                     <input
                       aria-label="검색어"
-                      type={["log", "plan"].includes(page) ? "search" : "text"}
+                      type={
+                        ["log", "plan", "activity"].includes(page)
+                          ? "search"
+                          : "text"
+                      }
                       placeholder={
                         page === "log"
                           ? "제목·작성자·작물·장소·작업·날짜 찾기"
                           : page === "plan"
                             ? "제목·작성자·연도·월·상태·담당자·결과 찾기"
-                            : "제목, 내용, 구역, 작물 검색"
+                            : page === "activity"
+                              ? "제목·내용·날짜·분류·작성자·참여자·계획·파일 찾기"
+                              : "제목, 내용, 구역, 작물 검색"
                       }
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                     />
                   </label>
-                  {page === "activity" && (
-                    <>
-                      <label>
-                        시작일
-                        <input
-                          type="date"
-                          value={from}
-                          onChange={(e) => setFrom(e.target.value)}
-                        />
-                      </label>
-                      <label>
-                        종료일
-                        <input
-                          type="date"
-                          value={to}
-                          onChange={(e) => setTo(e.target.value)}
-                        />
-                      </label>
-                      <label>
-                        연결 계획
-                        <select
-                          value={plan}
-                          onChange={(e) => setPlan(e.target.value)}
-                        >
-                          <option value="">전체 계획</option>
-                          <option value="none">계획 외 작업</option>
-                          {plans.map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {p.target_year} · {p.title}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    </>
-                  )}
-                  {page === "activity" && (
-                    <label>
-                      활동 분류
-                      <select
-                        aria-label="활동 분류 필터"
-                        value={activityCategory}
-                        onChange={(e) => setActivityCategory(e.target.value)}
-                      >
-                        <option value="">전체 활동</option>
-                        {[
-                          "회의·운영",
-                          "교육·견학",
-                          "행사·교류",
-                          "판매·홍보",
-                          "나눔·봉사",
-                          "자재·행정",
-                        ].map((c) => (
-                          <option key={c}>{c}</option>
-                        ))}
-                      </select>
-                    </label>
-                  )}
                   {page === "resource" && (
                     <label>
                       분류
@@ -935,7 +865,7 @@ export default function App() {
                       </select>
                     </label>
                   )}
-                  {!["log", "plan"].includes(page) && (
+                  {page === "resource" && (
                     <label>
                       작성자
                       <select
@@ -1051,13 +981,7 @@ export default function App() {
                 ) : (
                   <Empty
                     title={
-                      query ||
-                      from ||
-                      to ||
-                      author ||
-                      plan ||
-                      category ||
-                      activityCategory
+                      query || author || category
                         ? "조건에 맞는 기록이 없습니다"
                         : "아직 기록이 없습니다"
                     }
