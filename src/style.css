@@ -2234,6 +2234,9 @@ textarea::placeholder {
 }
 
 /* Readable defaults and persistent optional magnification. */
+:root[data-text-size="small"] {
+  font-size: 16px;
+}
 :root[data-text-size="large"] {
   font-size: 21px;
 }

@@ -1,13 +1,27 @@
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 const sizes = [
+  { value: "small", label: "조금 작게" },
   { value: "normal", label: "기본" },
   { value: "large", label: "크게" },
   { value: "extra", label: "아주 크게" },
 ];
-export function TextSizeControl() {
+export function TextSizeControl({ userId }: { userId?: string }) {
   const [size, setSize] = useState(
     document.documentElement.dataset.textSize || "normal",
   );
+  useLayoutEffect(() => {
+    try {
+      const saved =
+        (userId && localStorage.getItem(`farm-text-size:${userId}`)) ||
+        localStorage.getItem("farm-text-size");
+      if (sizes.some((option) => option.value === saved)) {
+        document.documentElement.dataset.textSize = saved!;
+        setSize(saved!);
+      }
+    } catch {
+      /* Keep the current size if browser storage is unavailable. */
+    }
+  }, [userId]);
   return (
     <details className="text-size-control">
       <summary>
@@ -26,6 +40,11 @@ export function TextSizeControl() {
                 setSize(option.value);
                 try {
                   localStorage.setItem("farm-text-size", option.value);
+                  if (userId)
+                    localStorage.setItem(
+                      `farm-text-size:${userId}`,
+                      option.value,
+                    );
                 } catch {
                   /* Readability must not depend on local storage. */
                 }
@@ -36,8 +55,8 @@ export function TextSizeControl() {
           ))}
         </div>
         <p>
-          이 기기에서 다음 접속에도 유지됩니다. 화면을 넓게 보려면 기본으로
-          되돌릴 수 있어요.
+          마지막 선택을 이 브라우저에 저장합니다. 로그인한 계정별로 기억해 다음
+          접속에도 적용해요.
         </p>
       </div>
     </details>

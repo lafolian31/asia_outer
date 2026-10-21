@@ -1,14 +1,14 @@
 import { test, expect, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
 const fixtures = JSON.parse(readFileSync(".env.test-fixtures.json", "utf8"));
-async function login(page: Page) {
+async function login(page: Page, who = "admin") {
   await page.goto("/");
   await page
     .getByLabel("이메일", { exact: true })
-    .fill(fixtures.users.admin.email);
+    .fill(fixtures.users[who].email);
   await page
     .getByLabel("비밀번호", { exact: true })
-    .fill(fixtures.users.admin.password);
+    .fill(fixtures.users[who].password);
   await page.getByRole("button", { name: "로그인", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "농장의 오늘을 살펴보세요" }),
@@ -134,4 +134,52 @@ test("로그인 전 확대 설정 유지, 키보드 조작 및 저장소 차단 
     await page.locator("html").evaluate((e) => getComputedStyle(e).fontSize),
   ).toBe("18px");
   await expect(page.getByLabel("이메일", { exact: true })).toBeVisible();
+});
+
+test("조금 작게 저장·재접속 및 공용 브라우저에서 A/B 계정별 마지막 크기 복원", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.route("https://api.open-meteo.com/**", (route) => route.abort());
+  await login(page, "a");
+  const choose = async (label: string) => {
+    const control = page.locator(".text-size-control");
+    if ((await control.getAttribute("open")) === null)
+      await control.locator("summary").click();
+    await control.getByRole("button", { name: label, exact: true }).click();
+    await control.locator("summary").click();
+  };
+  const rootSize = () =>
+    page.locator("html").evaluate((e) => getComputedStyle(e).fontSize);
+  await choose("조금 작게");
+  expect(await rootSize()).toBe("16px");
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "농장의 오늘을 살펴보세요" }),
+  ).toBeVisible();
+  expect(await rootSize()).toBe("16px");
+  await page.getByRole("button", { name: "로그아웃", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "로그인", exact: true }),
+  ).toBeVisible();
+  await login(page, "b");
+  await choose("아주 크게");
+  expect(await rootSize()).toBe("24px");
+  await page.getByRole("button", { name: "로그아웃", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "로그인", exact: true }),
+  ).toBeVisible();
+  await login(page, "a");
+  expect(await rootSize()).toBe("16px");
+  await page.locator(".text-size-control summary").click();
+  await expect(
+    page.getByRole("button", { name: "조금 작게", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await page.locator(".text-size-control summary").click();
+  await page.getByRole("button", { name: "로그아웃", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "로그인", exact: true }),
+  ).toBeVisible();
+  await login(page, "b");
+  expect(await rootSize()).toBe("24px");
 });

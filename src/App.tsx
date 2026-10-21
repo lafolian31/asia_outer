@@ -490,7 +490,7 @@ export default function App() {
             </span>
           </div>
           <div className="top-actions">
-            <TextSizeControl />
+            <TextSizeControl userId={me.user_id} />
             <span className="today-label">
               {new Date().toLocaleDateString("ko-KR", {
                 year: "numeric",
