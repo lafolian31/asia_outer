@@ -221,6 +221,14 @@ export function exportCsv(s: Snapshot) {
     "농장기록.csv",
   );
 }
+export async function accountingBackup() {
+  try {
+    return await rpc("accounting_backup");
+  } catch (error: any) {
+    if (["PGRST202", "42883"].includes(error?.code)) return null;
+    throw error;
+  }
+}
 export async function backup(s: Snapshot) {
   const { zipSync, strToU8 } = await import("fflate");
   const assets = s.assets.filter((a) => a.ready);
@@ -228,10 +236,11 @@ export async function backup(s: Snapshot) {
     throw new Error(
       "100MB 이상 백업은 PC에서 운영 안내의 백업 명령을 사용해 주세요.",
     );
-  const [audit, comments, reactions] = await Promise.all([
+  const [audit, comments, reactions, accounting] = await Promise.all([
     all("audit_log"),
     optionalAll("entry_comments"),
     optionalAll("entry_reactions"),
+    accountingBackup(),
   ]);
   const files: Record<string, Uint8Array> = {
     "manifest.json": strToU8(
@@ -243,6 +252,7 @@ export async function backup(s: Snapshot) {
           audit,
           comments,
           reactions,
+          accounting,
         },
         null,
         2,
@@ -253,12 +263,15 @@ export async function backup(s: Snapshot) {
     files["files/" + a.path] = new Uint8Array(
       await (await fileBlob(a)).arrayBuffer(),
     );
-  const [latest, latestComments, latestReactions] = await Promise.all([
-    snapshot(),
-    optionalAll("entry_comments"),
-    optionalAll("entry_reactions"),
-  ]);
+  const [latest, latestComments, latestReactions, latestAccounting] =
+    await Promise.all([
+      snapshot(),
+      optionalAll("entry_comments"),
+      optionalAll("entry_reactions"),
+      accountingBackup(),
+    ]);
   if (
+    JSON.stringify(latestAccounting) !== JSON.stringify(accounting) ||
     JSON.stringify(latest.entries.map((e) => [e.id, e.version])) !==
       JSON.stringify(s.entries.map((e) => [e.id, e.version])) ||
     JSON.stringify(latest.assets) !== JSON.stringify(s.assets) ||

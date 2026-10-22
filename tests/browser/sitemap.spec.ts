@@ -31,13 +31,13 @@ for (const [who, width] of [
       ).toBeVisible();
       const labels = await nav.getByRole("button").allTextContents();
       expect(labels.slice(-2)).toEqual(
-        who === "admin" ? ["농장 관리", "사이트맵"] : ["영농정보", "사이트맵"],
+        who === "admin" ? ["농장 관리", "사이트맵"] : ["공동회계", "사이트맵"],
       );
       await nav.getByRole("button", { name: "사이트맵", exact: true }).click();
       const map = page.getByRole("region", { name: "앱 메뉴 구조" });
       await expect(map).toBeVisible();
       await expect(map.locator(".site-map-card")).toHaveCount(
-        who === "admin" ? 7 : 6,
+        who === "admin" ? 8 : 7,
       );
       await expect(
         map.getByRole("button", { name: "농장 관리 메뉴로 이동", exact: true }),
@@ -55,6 +55,7 @@ for (const [who, width] of [
         "운영·교류",
         "자료함",
         "영농정보",
+        "공동회계",
         ...(who === "admin" ? ["농장 관리"] : []),
       ];
       for (const menu of menus) {

@@ -2,14 +2,28 @@
 import { execFileSync, spawn } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { randomBytes, createHmac } from "node:crypto";
-const replica = process.env.FARM_LOCAL_INSTANCE === "restore";
-const prefix = replica ? "farm-test-restore" : "farm-test";
-const apiPort = replica ? 54331 : 54321;
-const portBase = replica ? 55442 : 55432;
-const configFile = replica
-  ? ".env.restore-stack.json"
-  : ".env.local-stack.json";
-const pidFile = replica ? ".env.restore-stack-pid" : ".env.local-stack-pid";
+const instance = process.env.FARM_LOCAL_INSTANCE || "primary";
+if (!["primary", "restore", "accounting-restore"].includes(instance))
+  throw new Error("Unknown local test instance");
+const replica = instance !== "primary";
+const accountingReplica = instance === "accounting-restore";
+const prefix = accountingReplica
+  ? "farm-test-accounting-restore"
+  : replica
+    ? "farm-test-restore"
+    : "farm-test";
+const apiPort = accountingReplica ? 54341 : replica ? 54331 : 54321;
+const portBase = accountingReplica ? 55452 : replica ? 55442 : 55432;
+const configFile = accountingReplica
+  ? ".env.accounting-restore-stack.json"
+  : replica
+    ? ".env.restore-stack.json"
+    : ".env.local-stack.json";
+const pidFile = accountingReplica
+  ? ".env.accounting-restore-stack-pid"
+  : replica
+    ? ".env.restore-stack-pid"
+    : ".env.local-stack-pid";
 const names = ["db", "auth", "rest", "storage"];
 const docker = (args, options = {}) =>
   execFileSync("docker", args, {
@@ -270,8 +284,13 @@ sql(
   readFileSync("supabase/migrations/202610200001_multi_recording.sql", "utf8"),
 );
 sql(readFileSync("supabase/migrations/202610200002_record_files.sql", "utf8"));
+sql(readFileSync("supabase/migrations/202610220001_accounting.sql", "utf8"));
 writeFileSync(
-  replica ? ".env.restore-test" : ".env.test",
+  accountingReplica
+    ? ".env.accounting-restore-test"
+    : replica
+      ? ".env.restore-test"
+      : ".env.test",
   `SUPABASE_URL=http://127.0.0.1:${apiPort}\nSUPABASE_ANON_KEY=${config.anon}\nSUPABASE_SERVICE_ROLE_KEY=${config.service}\n`,
   { mode: 0o600 },
 );

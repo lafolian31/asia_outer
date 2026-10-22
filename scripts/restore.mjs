@@ -32,6 +32,11 @@ for (const table of [
   "assets",
   "entry_comments",
   "entry_reactions",
+  "accounting_roles",
+  "accounting_imports",
+  "accounting_transactions",
+  "accounting_import_items",
+  "accounting_audit",
 ]) {
   const r = await db.from(table).select("*", { count: "exact", head: true });
   check(r);
@@ -67,6 +72,24 @@ for (const c of manifest.comments || []) {
   remap(c.updated_by);
 }
 for (const r of manifest.reactions || []) remap(r.user_id);
+if (manifest.accounting) {
+  if (manifest.accounting.format !== 1)
+    throw Error("Unsupported accounting backup format");
+  remap(manifest.accounting.settings.updated_by);
+  for (const r of manifest.accounting.roles) {
+    remap(r.user_id);
+    remap(r.granted_by);
+  }
+  for (const r of manifest.accounting.imports) {
+    remap(r.created_by);
+    remap(r.cancelled_by);
+  }
+  for (const r of manifest.accounting.transactions) remap(r.updated_by);
+  for (const r of manifest.accounting.audit) {
+    remap(r.actor_id);
+    if (r.entity === "treasurer") remap(r.entity_id);
+  }
+}
 for (const a of manifest.assets.filter((a) => a.ready)) {
   remap(a.author_id);
   if (!/^[0-9a-f-]{36}\/[0-9a-f-]{36}$/.test(a.path))
@@ -147,6 +170,58 @@ for (const a of manifest.assets.filter((a) => a.ready)) {
         upsert: false,
       }),
   );
+}
+if (manifest.accounting) {
+  const finance = manifest.accounting;
+  // Target emptiness was checked above. Replace only seeded default finance categories.
+  check(await db.from("accounting_categories").delete().not("id", "is", null));
+  check(
+    await db
+      .from("accounting_settings")
+      .update({
+        ...finance.settings,
+        updated_by: remap(finance.settings.updated_by),
+      })
+      .eq("id", true),
+  );
+  const groups = [
+    ["accounting_categories", finance.categories],
+    [
+      "accounting_roles",
+      finance.roles.map((r) => ({
+        ...r,
+        user_id: remap(r.user_id),
+        granted_by: remap(r.granted_by),
+      })),
+    ],
+    [
+      "accounting_imports",
+      finance.imports.map((r) => ({
+        ...r,
+        created_by: remap(r.created_by),
+        cancelled_by: remap(r.cancelled_by),
+      })),
+    ],
+    [
+      "accounting_transactions",
+      finance.transactions.map((r) => ({
+        ...r,
+        updated_by: remap(r.updated_by),
+      })),
+    ],
+    ["accounting_import_items", finance.items],
+    [
+      "accounting_audit",
+      finance.audit.map((r) => ({
+        ...r,
+        actor_id: remap(r.actor_id),
+        entity_id: r.entity === "treasurer" ? remap(r.entity_id) : r.entity_id,
+      })),
+    ],
+  ];
+  for (const [table, rows] of groups)
+    for (let i = 0; i < rows.length; i += 100)
+      check(await db.from(table).insert(rows.slice(i, i + 100)));
 }
 // Historical audit is retained in the backup; restore-generated audit is kept in the new project.
 console.log(

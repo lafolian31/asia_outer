@@ -2692,3 +2692,233 @@ input[type="radio"] {
     min-width: 0;
   }
 }
+
+.accounting-page {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+.accounting-tools {
+  margin-bottom: 0;
+}
+.accounting-page .panel {
+  min-width: 0;
+}
+.accounting-bank {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 18px;
+}
+.accounting-bank > div {
+  min-width: 0;
+}
+.accounting-bank > p {
+  flex: 1 0 100%;
+  color: #52634f;
+  font-size: 0.8889rem;
+}
+.accounting-bank small {
+  display: block;
+  margin-top: 10px;
+}
+.accounting-number {
+  display: block;
+  font-size: 1.3333rem;
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+.accounting-bank-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 15px;
+  border: 1px solid #d9e5d5;
+  border-radius: 9px;
+  text-decoration: none;
+}
+.accounting-filter-grid,
+.accounting-mapping {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.accounting-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+.accounting-summary .panel {
+  padding: 20px;
+}
+.accounting-summary strong,
+.accounting-summary small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.accounting-summary strong {
+  font-size: 1.3333rem;
+  margin: 10px 0;
+}
+.accounting-summary .accounting-date {
+  font-size: 1rem;
+}
+.accounting-page .income {
+  color: #24599b;
+}
+.accounting-page .expense {
+  color: #a2432e;
+}
+.accounting-notice {
+  padding: 16px;
+  border-radius: 10px;
+  background: #f0f4e9;
+  color: #43573d;
+  font-size: 0.8889rem;
+}
+.accounting-transactions {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+.accounting-transaction {
+  border: 1px solid #dce4d6;
+  border-radius: 10px;
+  padding: 16px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.accounting-transaction > div:first-child,
+.accounting-transaction-meta,
+.accounting-analysis-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.accounting-transaction > div:first-child strong {
+  font-size: 1.1667rem;
+}
+.accounting-transaction time,
+.accounting-transaction-meta {
+  font-size: 0.8889rem;
+  color: #52634f;
+}
+.accounting-transaction p {
+  margin: 10px 0;
+}
+.accounting-pages {
+  margin-top: 20px;
+  align-items: center;
+}
+.accounting-analysis summary,
+.accounting-settings summary {
+  cursor: pointer;
+  font-weight: 650;
+  font-size: 1.1111rem;
+}
+.accounting-analysis h3,
+.accounting-settings h3 {
+  margin: 20px 0 12px;
+}
+.accounting-analysis-row {
+  padding: 12px 0;
+  border-bottom: 1px solid #e7ebe3;
+}
+.accounting-month {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 12px 0;
+  border-bottom: 1px solid #e7ebe3;
+}
+.accounting-import > p,
+.accounting-history p {
+  margin: 12px 0;
+}
+.accounting-import-counts {
+  font-weight: 650;
+}
+.accounting-mapping {
+  margin-top: 12px;
+}
+.accounting-preview {
+  display: grid;
+  gap: 12px;
+  margin: 16px 0;
+}
+.accounting-preview-row {
+  border: 1px solid #dce4d6;
+  border-radius: 10px;
+  padding: 14px;
+  overflow-wrap: anywhere;
+}
+.accounting-preview-row.status-review {
+  border-left: 5px solid #b47c20;
+}
+.accounting-preview-row.status-error {
+  border-left: 5px solid #a2432e;
+}
+.accounting-preview-row.status-duplicate {
+  background: #f0f4e9;
+}
+.accounting-check {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+}
+.accounting-check input {
+  width: 24px;
+  flex: 0 0 24px;
+}
+.accounting-history-row {
+  border-bottom: 1px solid #e7ebe3;
+  padding: 16px 0;
+  overflow-wrap: anywhere;
+}
+.accounting-history-row small {
+  display: block;
+}
+.accounting-page label {
+  min-width: 0;
+}
+.accounting-page h2 {
+  margin-bottom: 14px;
+}
+.accounting-page p {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 1200px) {
+  .accounting-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 640px) {
+  .accounting-filter-grid,
+  .accounting-mapping {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .accounting-summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .accounting-bank .button-row {
+    width: 100%;
+  }
+  .accounting-bank .button-row > * {
+    flex: 1 1 100%;
+  }
+  .accounting-pages {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+:root[data-text-size="extra"] .accounting-summary {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (max-width: 900px) {
+  :root[data-text-size="extra"] .accounting-summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

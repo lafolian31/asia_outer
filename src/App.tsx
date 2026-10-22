@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import {
   Sprout,
@@ -50,6 +50,7 @@ import { TextSizeControl } from "./components/TextSizeControl";
 import { navigation } from "./lib/navigation";
 import { SiteMap } from "./components/SiteMap";
 import { Password } from "./components/Password";
+const Accounting = lazy(() => import("./components/accounting/Accounting"));
 export default function App() {
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [session, setSession] = useState<Session | null>(null),
@@ -564,9 +565,11 @@ export default function App() {
                           ? "함께 참고할 문서, 사진, 링크를 한곳에 모아요."
                           : page === "info"
                             ? "농사에 필요한 날씨·토양·재배기술·재해 정보를 찾아보세요."
-                            : page === "sitemap"
-                              ? "앱의 전체 메뉴 구조와 주요 기능을 한눈에 확인하세요. 메뉴 이름을 누르면 이동합니다."
-                              : "우리 농장과 참여자, 소중한 기록을 관리하세요."}
+                            : page === "accounting"
+                              ? "공동운영비의 입출금을 투명하게 확인하세요. 은행 자동 연동 없이 등록된 거래를 보여드립니다."
+                              : page === "sitemap"
+                                ? "앱의 전체 메뉴 구조와 주요 기능을 한눈에 확인하세요. 메뉴 이름을 누르면 이동합니다."
+                                : "우리 농장과 참여자, 소중한 기록을 관리하세요."}
               </p>
             </div>
             {page === "home" && <FarmWeather />}
@@ -805,6 +808,10 @@ export default function App() {
                 </div>
               </div>
             </>
+          ) : page === "accounting" ? (
+            <Suspense fallback={<p role="status">공동회계 준비 중…</p>}>
+              <Accounting me={me} members={s.members} />
+            </Suspense>
           ) : page === "sitemap" ? (
             <SiteMap
               farmName={s.settings.name}

@@ -11,6 +11,7 @@
 - [무료 서비스 연결·배포 순서](docs/DEPLOYMENT.md)
 - [검증 결과와 제약](docs/VALIDATION.md)
 - [저장 구조와 권한 설계](docs/ARCHITECTURE.md)
+- [공동회계 기능·적용·운영 안내](docs/ACCOUNTING.md)
 
 ## 개발 환경
 
@@ -69,3 +70,9 @@ React·TypeScript·Vite 화면을 Cloudflare Pages Free에 정적으로 배포�
 ### 복수 선택 검증
 
 로컬 계정 준비 후 `npm run test:multi`로 복수 저장·이전 클라이언트 보존·두 번째 계획 삭제 보호·권한을 검증합니다. 브라우저 `tests/browser/multi.spec.ts`는 PC·모바일의 여러 작업/작물/장소/계획 선택, 수정·해제·복사·찾기를 검사합니다. 신규 설치는 날짜순 모든 마이그레이션, 기존 선택형 설치는 `202610200001_multi_recording.sql`만 추가 실행합니다.
+
+### 공동회계 개발 브랜치
+
+`feature/shared-accounting`은 기존 로그인과 Supabase를 재사용한 공동회계 추가입니다. 운영 반영 전 추가 SQL과 배포 검토가 필요하며, 기존 농작업 기능은 유지합니다. 상세 권한·가져오기/중복 판단·잔액 계산·백업·제약·배포 순서는 [공동회계 안내](docs/ACCOUNTING.md)에 있습니다.
+
+로컬 시험 계정 준비 후 `npm run test:accounting`으로 회계 서버 검증을, `npm run test:e2e -- tests/browser/accounting.spec.ts`로 화면 검증을 실행합니다. 금융자료는 가상 데이터를 사용합니다. 독립 복구 시험 서버가 추가로 필요하면 `FARM_LOCAL_INSTANCE=accounting-restore npm run db:start` 후 `FARM_RESTORE_TEST_ENV=.env.accounting-restore-test npm run test:backup`을 사용합니다. 이 대상도 빈 프로젝트여야 하며 기존 복구 시험 서버를 초기화할 필요는 없습니다.

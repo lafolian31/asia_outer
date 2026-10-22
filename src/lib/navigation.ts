@@ -7,6 +7,7 @@ import {
   CloudSun,
   Settings,
   Network,
+  Wallet,
 } from "lucide-react";
 export const navigation = [
   {
@@ -73,6 +74,17 @@ export const navigation = [
       "날씨누리·흙토람·농사로",
       "농업기상재해 조기경보",
       "용인시 농업기술센터·농산물 가격",
+    ],
+  },
+  {
+    id: "accounting",
+    name: "공동회계",
+    icon: Wallet,
+    description: "농장 공동운영비의 입출금을 함께 확인해요.",
+    features: [
+      "모임통장 안내·계좌번호 복사",
+      "기간별 수입·지출·거래 조회",
+      "권한별 엑셀 가져오기·분류·보고서",
     ],
   },
   {

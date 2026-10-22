@@ -12,7 +12,12 @@ const source = {
   service: process.env.SUPABASE_SERVICE_ROLE_KEY,
 };
 const target = Object.fromEntries(
-  (await readFile(".env.restore-test", "utf8"))
+  (
+    await readFile(
+      process.env.FARM_RESTORE_TEST_ENV || ".env.restore-test",
+      "utf8",
+    )
+  )
     .trim()
     .split("\n")
     .map((line) => {
@@ -21,7 +26,11 @@ const target = Object.fromEntries(
     }),
 );
 assert.equal(source.url, "http://127.0.0.1:54321");
-assert.equal(target.SUPABASE_URL, "http://127.0.0.1:54331");
+assert.ok(
+  ["http://127.0.0.1:54331", "http://127.0.0.1:54341"].includes(
+    target.SUPABASE_URL,
+  ),
+);
 const fixture = JSON.parse(await readFile(".env.test-fixtures.json", "utf8"));
 const tmp = await mkdtemp(path.join(tmpdir(), "farm-backup-check-"));
 const backupDir = path.join(tmp, "snapshot");
@@ -66,6 +75,47 @@ execFileSync(
   ["scripts/restore.mjs", backupDir, mapFile, "--empty-target-confirmed"],
   { env: { ...process.env, ...target }, stdio: "pipe" },
 );
+if (manifest.accounting) {
+  const finance = manifest.accounting;
+  const expected = {
+    accounting_roles: finance.roles.map((r) => ({
+      ...r,
+      user_id: map[r.user_id],
+      granted_by: map[r.granted_by],
+    })),
+    accounting_categories: finance.categories,
+    accounting_imports: finance.imports.map((r) => ({
+      ...r,
+      created_by: map[r.created_by],
+      cancelled_by: r.cancelled_by ? map[r.cancelled_by] : null,
+    })),
+    accounting_transactions: finance.transactions.map((r) => ({
+      ...r,
+      updated_by: map[r.updated_by],
+    })),
+    accounting_import_items: finance.items,
+    accounting_audit: finance.audit.map((r) => ({
+      ...r,
+      actor_id: r.actor_id ? map[r.actor_id] : null,
+      entity_id: r.entity === "treasurer" ? map[r.entity_id] : r.entity_id,
+    })),
+  };
+  for (const [table, rows] of Object.entries(expected)) {
+    const copy = await db.from(table).select("*");
+    assert.ifError(copy.error);
+    const key = table === "accounting_roles" ? "user_id" : "id";
+    const sort = (a, b) => a[key].localeCompare(b[key]);
+    assert.deepEqual(copy.data.sort(sort), rows.sort(sort), table);
+  }
+  const settings = await db.from("accounting_settings").select("*").single();
+  assert.ifError(settings.error);
+  assert.deepEqual(settings.data, {
+    ...finance.settings,
+    updated_by: finance.settings.updated_by
+      ? map[finance.settings.updated_by]
+      : null,
+  });
+}
 const restoredSettings = await db
   .from("farm_settings")
   .select("resource_categories")
@@ -171,8 +221,13 @@ assert.ifError(
   ).error,
 );
 for (const a of manifest.assets.filter((a) => a.ready)) {
-  const r = await editor.storage.from("farm-files").download(a.path);
+  const deleted = manifest.entries.find((e) => e.id === a.entry_id)?.deleted_at;
+  const r = await (deleted ? db : editor).storage
+    .from("farm-files")
+    .download(a.path);
   assert.ifError(r.error);
+  if (deleted)
+    assert.ok((await editor.storage.from("farm-files").download(a.path)).error);
   const hash = createHash("sha256")
     .update(Buffer.from(await r.data.arrayBuffer()))
     .digest("hex");

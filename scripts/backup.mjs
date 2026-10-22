@@ -53,6 +53,13 @@ try {
     optionalAll("entry_comments"),
     optionalAll("entry_reactions"),
   ]);
+  async function financeSnapshot() {
+    const r = await db.rpc("accounting_backup");
+    if (r.error && ["PGRST202", "42883"].includes(r.error.code)) return null;
+    if (r.error) throw r.error;
+    return r.data;
+  }
+  const accounting = await financeSnapshot();
   const manifest = {
     format: 1,
     exported_at: new Date().toISOString(),
@@ -63,6 +70,7 @@ try {
     audit,
     comments,
     reactions,
+    accounting,
     sha256: {},
   };
   await mkdir(out, { recursive: false, mode: 0o700 });
@@ -82,6 +90,7 @@ try {
   const after = await all("entries");
   const afterAssets = await all("assets");
   if (
+    JSON.stringify(await financeSnapshot()) !== JSON.stringify(accounting) ||
     JSON.stringify(after.map((e) => [e.id, e.version])) !==
       JSON.stringify(entries.map((e) => [e.id, e.version])) ||
     JSON.stringify(afterAssets) !== JSON.stringify(assets) ||
